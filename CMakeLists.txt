@@ -12,8 +12,24 @@ target_link_directories(mysolver PRIVATE thirdparty/lib)
 target_link_libraries(mysolver GLEW)
 target_link_libraries(mysolver glfw3)
 
-add_library(tdogl OBJECT thirdparty/src/tdogl)
+add_subdirectory(thirdparty/src)
+include_directories(thirdparty/src/tdogl)
 target_link_libraries(mysolver tdogl)
+
+macro(resourceCopier)  # this macro comes from Tom Dalling's tutorial
+	file(COPY 
+  		${CMAKE_CURRENT_SOURCE_DIR}/resources 
+  		DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+	)
+  if (WIN32)
+    file(COPY 
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources 
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${_TRG_NAME}.dir
+    )
+  endif ()
+endmacro(resourceCopier)
+
+resourceCopier()
 
 
 IF(APPLE)  # MacOS requires a few extra libraries to make GLFW work
