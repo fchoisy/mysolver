@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>  // Windowing
 #include <glm/glm.hpp>  // Vector maths
 
+#include <tdogl/Program.h>
+
 int main() {
     // initialise GLFW
     // glfwSetErrorCallback(OnError);
