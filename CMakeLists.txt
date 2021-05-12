@@ -1,10 +1,24 @@
 cmake_minimum_required(VERSION 3.1.2)
 project(mysolver VERSION 0.1.0)
 
-add_executable(mysolver src/main.cpp)
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})  # Comment?
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+# Add source files
+file(GLOB_RECURSE SOURCE_FILES 
+	${CMAKE_SOURCE_DIR}/src/*.c
+	${CMAKE_SOURCE_DIR}/src/*.cpp)
+	
+# Add header files
+file(GLOB_RECURSE HEADER_FILES 
+	${CMAKE_SOURCE_DIR}/src/*.h
+	${CMAKE_SOURCE_DIR}/src/*.hpp)
+
+configure_file(src/helpers/RootDir.h.in src/helpers/RootDir.h)
+include_directories(${CMAKE_BINARY_DIR}/src)
+
+add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
+
 
 include_directories(thirdparty/include)
 # link_directories(thirdparty/lib)
@@ -13,23 +27,10 @@ target_link_libraries(mysolver GLEW)
 target_link_libraries(mysolver glfw3)
 
 add_subdirectory(thirdparty/src)
-include_directories(thirdparty/src/tdogl)
 target_link_libraries(mysolver tdogl)
 
-macro(resourceCopier)  # this macro comes from Tom Dalling's tutorial
-	file(COPY 
-  		${CMAKE_CURRENT_SOURCE_DIR}/resources 
-  		DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
-	)
-  if (WIN32)
-    file(COPY 
-        ${CMAKE_CURRENT_SOURCE_DIR}/resources 
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${_TRG_NAME}.dir
-    )
-  endif ()
-endmacro(resourceCopier)
+# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/fragment-shader.txt ${CMAKE_CURRENT_BINARY_DIR}/resources/fragment-shader.txt COPYONLY)
 
-resourceCopier()
 
 
 IF(APPLE)  # MacOS requires a few extra libraries to make GLFW work
