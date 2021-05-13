@@ -33,87 +33,38 @@ GLuint gVBO = 0;
 
 static void LoadShaders() {
     std::vector<tdogl::Shader> shaders;
-    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR"resources/vertex-shader.txt", GL_VERTEX_SHADER));
-    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR"/resources/fragment-shader.txt", GL_FRAGMENT_SHADER));
+    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR"/resources/vertex-shader.glsl", GL_VERTEX_SHADER));
+    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR"/resources/geometry-shader.glsl", GL_GEOMETRY_SHADER));
+    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR"/resources/fragment-shader.glsl", GL_FRAGMENT_SHADER));
     gProgram = new tdogl::Program(shaders);
     
-    // gProgram->use();
+    gProgram->use();
     // glm::mat4 projection = glm::perspective(glm::radians(50.0f), SCREEN_SIZE.x/SCREEN_SIZE.y, 0.1f, 10.0f);
-    // gProgram->setUniform("projection", projection);
-    // gProgram->stopUsing();
+    GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
+    glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
+    gProgram->setUniform("projection", projection);
+    gProgram->stopUsing();
 }
 
-static void LoadCube() {
+static void LoadVertexData() {
     glGenVertexArrays(1, &gVAO);
     glBindVertexArray(gVAO);
     
     glGenBuffers(1, &gVBO);
     glBindBuffer(GL_ARRAY_BUFFER, gVBO);
-    
-    // GLfloat vertexData[] = {
-    //     //  X     Y     Z       U     V
-    //     // bottom
-    //     -1.0f,-1.0f,-1.0f,   0.0f, 0.0f,
-    //      1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
-    //     -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-    //      1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
-    //      1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
-    //     -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-
-    //     // top
-    //     -1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
-    //     -1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-    //      1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
-    //      1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
-    //     -1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-    //      1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-
-    //     // front
-    //     -1.0f,-1.0f, 1.0f,   1.0f, 0.0f,
-    //      1.0f,-1.0f, 1.0f,   0.0f, 0.0f,
-    //     -1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-    //      1.0f,-1.0f, 1.0f,   0.0f, 0.0f,
-    //      1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-    //     -1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-
-    //     // back
-    //     -1.0f,-1.0f,-1.0f,   0.0f, 0.0f,
-    //     -1.0f, 1.0f,-1.0f,   0.0f, 1.0f,
-    //      1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
-    //      1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
-    //     -1.0f, 1.0f,-1.0f,   0.0f, 1.0f,
-    //      1.0f, 1.0f,-1.0f,   1.0f, 1.0f,
-
-    //     // left
-    //     -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-    //     -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
-    //     -1.0f,-1.0f,-1.0f,   0.0f, 0.0f,
-    //     -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-    //     -1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-    //     -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
-
-    //     // right
-    //      1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
-    //      1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
-    //      1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
-    //      1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
-    //      1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
-    //      1.0f, 1.0f, 1.0f,   0.0f, 1.0f
-    // };
 
     GLfloat vertexData[] = {
-        -1.0f,-1.0f, 0.5f,   0.0f, 1.0f,
-         0.0f, 1.0f, 0.5f,   1.0f, 0.0f,
-         1.0f,-1.0f, 0.5f,   0.0f, 0.0f,
+        -0.8f,-0.4f,
+         0.0f, 0.4f,
+         0.8f,-0.4f,
     };
-    
     
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
     
-    GLsizei stride = 5 * sizeof(GLfloat);
+    GLsizei stride = 0 * sizeof(GLfloat);
     
     glEnableVertexAttribArray(gProgram->attrib("vert"));
-    glVertexAttribPointer(gProgram->attrib("vert"), 3, GL_FLOAT, GL_FALSE, stride, NULL);
+    glVertexAttribPointer(gProgram->attrib("vert"), 2, GL_FLOAT, GL_FALSE, stride, NULL);
     
     // glEnableVertexAttribArray(gProgram->attrib("vertTexCoord"));
     // glVertexAttribPointer(gProgram->attrib("vertTexCoord"), 2, GL_FLOAT, GL_TRUE, stride, (const GLvoid*)(3 * sizeof(GLfloat)));
@@ -129,7 +80,8 @@ static void Update(float secondsElapsed) {
 
 static void Render() {
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     gProgram->use();
     
     // glActiveTexture(GL_TEXTURE0);
@@ -141,7 +93,7 @@ static void Render() {
     gProgram->setUniform("color", glm::vec4(0, 0, 1, 1));
     // gProgram->setUniform("model", glm::mat4());
     // gProgram->setUniform("model", glm::translate(glm::scale(glm::mat4(), glm::vec3(.1f, .1f, .1f)), glm::vec3(2, 2, 0)));
-    glDrawArrays(GL_TRIANGLES, 0, 6*2*3);
+    glDrawArrays(GL_POINTS, 0, 3);
     
     glBindVertexArray(0);
     
@@ -204,7 +156,7 @@ void AppMain() {
     // LoadTexture();
 
     // create buffer and fill it with the points of the cube
-    LoadCube();
+    LoadVertexData();
 
     // run while the window is open
     double lastTime = glfwGetTime();
