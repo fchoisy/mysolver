@@ -1,7 +1,7 @@
 /**
  * main
  * 
- * The structure of this file is inspired by Tom Dalling's OpenGL tutorial (http://tomdalling.com/).
+ * Tom Dalling's OpenGL tutorial (http://tomdalling.com/) chapter 1 was taken as starting point for this file.
  */
 
 // third-party libraries
@@ -9,27 +9,35 @@
 #include <GLFW/glfw3.h>  // Windowing
 #include <glm/gtc/matrix_transform.hpp> // Vector maths
 #include <tdogl/Program.h>
-#include <tdogl/Texture.h>
 // standard C++ libraries
 #include <iostream>
 
 #include "helpers/RootDir.h"
+
+struct Particle {
+    glm::vec2 position, velocity;
+    std::vector<Particle*> neighbors;
+};
+
+// struct ModelInstance {
+//     tdogl::Program* shaders;
+
+// };
+
+struct ParticleFluid {
+    std::vector<Particle> particles; 
+};
+
 
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
 
 // globals
 GLFWwindow* gWindow = NULL;
-// tdogl::Texture* gTexture = NULL;
 tdogl::Program* gProgram = NULL;
 GLuint gVAO = 0;
 GLuint gVBO = 0;
 
-// static void LoadTexture() {
-//     tdogl::Bitmap bmp = tdogl::Bitmap::bitmapFromFile("./resources/circle.png");
-//     bmp.flipVertically();
-//     gTexture = new tdogl::Texture(bmp);
-// }
 
 static void LoadShaders() {
     std::vector<tdogl::Shader> shaders;
@@ -46,29 +54,34 @@ static void LoadShaders() {
     gProgram->stopUsing();
 }
 
-static void LoadVertexData() {
+static void LoadVertexData(const ParticleFluid& particleFluid) {
     glGenVertexArrays(1, &gVAO);
     glBindVertexArray(gVAO);
     
     glGenBuffers(1, &gVBO);
     glBindBuffer(GL_ARRAY_BUFFER, gVBO);
 
-    GLfloat vertexData[] = {
-        -0.8f,-0.4f,
-         0.0f, 0.4f,
-         0.8f,-0.4f,
-    };
+    // GLfloat vertexData[] = {
+    //     -0.8f,-0.4f,
+    //      0.0f, 0.4f,
+    //      0.8f,-0.4f,
+    // };
+
+    std::vector<GLfloat> vertexData;
+    std::vector<Particle>::const_iterator it;
+    for (it = particleFluid.particles.begin(); it != particleFluid.particles.end(); ++it)
+    {
+        vertexData.push_back(it->position.x);
+        vertexData.push_back(it->position.y);
+    }
     
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+    
+    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
     
     GLsizei stride = 0 * sizeof(GLfloat);
     
     glEnableVertexAttribArray(gProgram->attrib("vert"));
     glVertexAttribPointer(gProgram->attrib("vert"), 2, GL_FLOAT, GL_FALSE, stride, NULL);
-    
-    // glEnableVertexAttribArray(gProgram->attrib("vertTexCoord"));
-    // glVertexAttribPointer(gProgram->attrib("vertTexCoord"), 2, GL_FLOAT, GL_TRUE, stride, (const GLvoid*)(3 * sizeof(GLfloat)));
-    
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -80,20 +93,13 @@ static void Update(float secondsElapsed) {
 
 static void Render() {
     glClearColor(0, 0, 0, 1);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     gProgram->use();
-    
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, gTexture->object());
-    // gProgram->setUniform("tex", 0);
     
     glBindVertexArray(gVAO);
     
     gProgram->setUniform("color", glm::vec4(0, 0, 1, 1));
-    // gProgram->setUniform("model", glm::mat4());
-    // gProgram->setUniform("model", glm::translate(glm::scale(glm::mat4(), glm::vec3(.1f, .1f, .1f)), glm::vec3(2, 2, 0)));
-    glDrawArrays(GL_POINTS, 0, 3);
+    glDrawArrays(GL_POINTS, 0, 1);
     
     glBindVertexArray(0);
     
@@ -144,19 +150,23 @@ void AppMain() {
         throw std::runtime_error("OpenGL 3.2 API is not available.");
 
     // OpenGL settings
-    // glEnable(GL_DEPTH_TEST);  // Enable depth buffering
-    // glDepthFunc(GL_LESS);  // The pixels with less depth will be drawn on top
+    glEnable(GL_DEPTH_TEST);  // Enable depth buffering
+    glDepthFunc(GL_LESS);  // The pixels with less depth will be drawn on top
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // load vertex and fragment shaders into opengl
     LoadShaders();
 
-    // load the texture
-    // LoadTexture();
+    ParticleFluid particleFluid;
+    particleFluid.particles = std::vector<Particle>();
+    Particle part = {
+        .position = glm::vec2(.5f, .5f)
+    };
+    particleFluid.particles.push_back(part);
 
     // create buffer and fill it with the points of the cube
-    LoadVertexData();
+    LoadVertexData(particleFluid);
 
     // run while the window is open
     double lastTime = glfwGetTime();
@@ -168,9 +178,10 @@ void AppMain() {
         double thisTime = glfwGetTime();
         Update((float)(thisTime - lastTime));
         lastTime = thisTime;
+
+
         // draw one frame
         Render();
-        // std::cout << "Still alive at " << thisTime << std::endl;
 
         // check for errors
         GLenum error = glGetError();
