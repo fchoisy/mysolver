@@ -8,6 +8,7 @@
 #include <GL/glew.h>  // Runtime loading of OpenGL API functions
 #include <GLFW/glfw3.h>  // Windowing
 #include <glm/gtc/matrix_transform.hpp> // Vector maths
+#include <glm/gtx/string_cast.hpp>  // For debugging
 #include <tdogl/Program.h>
 // standard C++ libraries
 #include <iostream>
@@ -16,18 +17,19 @@
 
 struct Particle {
     glm::vec2 position, velocity;
-    std::vector<Particle*> neighbors;
 };
 
-// struct ModelInstance {
-//     tdogl::Program* shaders;
-
-// };
-
-struct ParticleFluid {
+struct ParticleSet {
     std::vector<Particle> particles; 
 };
 
+struct Model {
+    GLuint vao;
+    GLuint vbo;
+    GLenum drawType;
+    GLint drawStart;
+    GLint drawCount;
+};
 
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
@@ -35,8 +37,8 @@ const glm::vec2 SCREEN_SIZE(800, 600);
 // globals
 GLFWwindow* gWindow = NULL;
 tdogl::Program* gProgram = NULL;
-GLuint gVAO = 0;
-GLuint gVBO = 0;
+// GLuint gVAO = 0;
+// GLuint gVBO = 0;
 
 
 static void LoadShaders() {
@@ -51,55 +53,69 @@ static void LoadShaders() {
     GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
     glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
     gProgram->setUniform("projection", projection);
+
+    glm::mat4 camera = glm::translate(glm::mat4(1.0f), glm::vec3(-1.f, -1.f, 0.f));
+    gProgram->setUniform("camera", camera);
+
     gProgram->stopUsing();
 }
 
-static void LoadVertexData(const ParticleFluid& particleFluid) {
-    glGenVertexArrays(1, &gVAO);
-    glBindVertexArray(gVAO);
-    
-    glGenBuffers(1, &gVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, gVBO);
 
-    // GLfloat vertexData[] = {
-    //     -0.8f,-0.4f,
-    //      0.0f, 0.4f,
-    //      0.8f,-0.4f,
-    // };
+static Model* FluidModelFromParticles(const ParticleSet& particleSet) {
+    Model* fluidModel = new Model();
+    glGenVertexArrays(1, &fluidModel->vao);
+    glGenBuffers(1, &fluidModel->vbo);
+    fluidModel->drawCount = particleSet.particles.size();
+
+
+    glBindVertexArray(fluidModel->vao);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, fluidModel->vbo);
 
     std::vector<GLfloat> vertexData;
     std::vector<Particle>::const_iterator it;
-    for (it = particleFluid.particles.begin(); it != particleFluid.particles.end(); ++it)
+    for (it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
     {
+        // Position
         vertexData.push_back(it->position.x);
         vertexData.push_back(it->position.y);
+        // Color
+        vertexData.push_back(it->position.x);
+        vertexData.push_back(it->position.y);
+        vertexData.push_back(0.f);
+        vertexData.push_back(1.f);
     }
-    
     
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
     
-    GLsizei stride = 0 * sizeof(GLfloat);
+    GLsizei stride = 6 * sizeof(GLfloat);
+    const GLvoid* offset = (const GLvoid*)(2 * sizeof(GLfloat));
     
     glEnableVertexAttribArray(gProgram->attrib("vert"));
     glVertexAttribPointer(gProgram->attrib("vert"), 2, GL_FLOAT, GL_FALSE, stride, NULL);
     
+    glEnableVertexAttribArray(gProgram->attrib("vertColor"));
+    glVertexAttribPointer(gProgram->attrib("vertColor"), 4, GL_FLOAT, GL_TRUE, stride, offset);
+    
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    return fluidModel;
 }
 
 static void Update(float secondsElapsed) {
     ;
 }
 
-static void Render() {
+static void Render(const Model& fluidModel) {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     gProgram->use();
     
-    glBindVertexArray(gVAO);
+    glBindVertexArray(fluidModel.vao);
     
-    gProgram->setUniform("color", glm::vec4(0, 0, 1, 1));
-    glDrawArrays(GL_POINTS, 0, 1);
+    // gProgram->setUniform("color", glm::vec4(0, 0, 1, 1));
+    glDrawArrays(GL_POINTS, 0, fluidModel.drawCount);
     
     glBindVertexArray(0);
     
@@ -158,15 +174,23 @@ void AppMain() {
     // load vertex and fragment shaders into opengl
     LoadShaders();
 
-    ParticleFluid particleFluid;
-    particleFluid.particles = std::vector<Particle>();
-    Particle part = {
-        .position = glm::vec2(.5f, .5f)
-    };
-    particleFluid.particles.push_back(part);
+    ParticleSet particleSet;
+    particleSet.particles = std::vector<Particle>();
+
+    for (size_t i = 0; i < 10; i++)
+    {
+        for (size_t j = 0; j < 10; j++)
+        {
+            Particle part = {
+                .position = glm::vec2(i / 10.f, j / 10.f)
+            };
+            particleSet.particles.push_back(part);
+        }
+    }
 
     // create buffer and fill it with the points of the cube
-    LoadVertexData(particleFluid);
+    // LoadVertexData(particleSet);
+    Model* fluidModel = FluidModelFromParticles(particleSet);
 
     // run while the window is open
     double lastTime = glfwGetTime();
@@ -181,7 +205,8 @@ void AppMain() {
 
 
         // draw one frame
-        Render();
+        Render(*fluidModel);
+        
 
         // check for errors
         GLenum error = glGetError();

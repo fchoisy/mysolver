@@ -3,9 +3,10 @@
 
 uniform vec4 color;
 
-// in vec2 fragTexCoord;
+in vec4 fragColor;
 out vec4 finalColor;
 
 void main() {
-    finalColor = color; // * texture(tex, fragTexCoord);
+    // finalColor = fragColor * vec4(0, 0, 0, 0) + vec4(1,1,1,1); // * texture(tex, fragTexCoord);
+    finalColor = fragColor; // * texture(tex, fragTexCoord);
 }
