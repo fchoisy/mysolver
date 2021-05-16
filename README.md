@@ -8,6 +8,9 @@ Third-party dependencies:
 
 To-do
 - neighbor search
+    - naively
+    - efficiently
+    - visualize
 
 Done
-- importing requied libraries
+- importing required libraries
