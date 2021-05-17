@@ -16,23 +16,12 @@
 #include <tdogl/Program.h>
 
 #include "Graphics.hpp"
-#include "Physics.hpp"
+#include "Particles.hpp"
+#include "Model.hpp"
+#include "helpers/RootDir.h"
 
 // GLuint gVAO = 0;
 // GLuint gVBO = 0;
-
-static void FindNeighbors(Particle &particle, ParticleSet &particleSet)
-{
-    float searchRadius = 2 * particleSet.particleSpacing;
-    particle.neighbors = std::vector<const Particle *>();
-    for (std::vector<Particle>::const_iterator it2 = particleSet.particles.begin(); it2 != particleSet.particles.end(); ++it2)
-    {
-        if (&particle != it2.base() && glm::distance(particle.position, (*it2).position) < searchRadius)
-        {
-            particle.neighbors.push_back(it2.base());
-        }
-    }
-}
 
 // static void FindAllNeighbors(ParticleSet &particleSet)
 // {
@@ -50,7 +39,10 @@ static void FindNeighbors(Particle &particle, ParticleSet &particleSet)
 //     }
 // }
 
-void MyOnInit(Model **fluidModel)
+Model *gModel = NULL;
+Graphics *gGraphics = NULL;
+
+void MyOnInit()
 {
     ParticleSet particleSet;
     particleSet.particles = std::vector<Particle>();
@@ -59,22 +51,28 @@ void MyOnInit(Model **fluidModel)
     {
         for (size_t j = 0; j < 10; j++)
         {
-            Particle part = {
-                .position = glm::vec2(i * particleSet.particleSpacing, j * particleSet.particleSpacing)};
+            Particle part;
+            part.position = glm::vec2(i * particleSet.particleSpacing, j * particleSet.particleSpacing);
             particleSet.particles.push_back(part);
         }
     }
 
     Particle &frontParticle = particleSet.particles.front();
-    FindNeighbors(frontParticle, particleSet);
-    for (std::vector<const Particle *>::const_iterator it = frontParticle.neighbors.begin(); it != frontParticle.neighbors.end(); ++it)
+    std::vector<const Particle *> *neighbors = particleSet.FindNeighbors(frontParticle);
+    for (std::vector<const Particle *>::const_iterator it = neighbors->begin(); it != neighbors->end(); ++it)
     {
         std::cout << glm::to_string((*it)->position) << std::endl;
     }
 
     // create buffer and fill it with the points of the cube
     // LoadVertexData(particleSet);
-    *fluidModel = FluidModelFromParticles(particleSet);
+    // *fluidModel = FluidModelFromParticles(particleSet);
+    gModel = new Model(*particleSet.ToVertexData(),
+                       ROOT_DIR "resources/vertex-shader.glsl",
+                       ROOT_DIR "resources/geometry-shader.glsl",
+                       ROOT_DIR "resources/fragment-shader.glsl");
+
+    gGraphics->models.push_back(gModel);
     std::cout << "Just initialized" << std::endl;
 }
 
@@ -94,8 +92,9 @@ void AppMain()
     // void (*OnInit)() = &MyOnInit;
     // void (*OnUpdate)() = &MyOnUpdate;
     // void (*OnClose)() = &MyOnClose;
-    Graphics graphics(&MyOnInit, &MyOnUpdate, &MyOnClose);
-    graphics.run();
+    gGraphics = new Graphics(&MyOnInit, &MyOnUpdate, &MyOnClose);
+    gGraphics->Run();
+    delete gGraphics;
 }
 
 int main(int argc, char *argv[])

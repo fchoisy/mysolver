@@ -1,113 +1,15 @@
-
-
 #include <iostream>
 
 #include <GL/glew.h>                    // Runtime loading of OpenGL API functions
 #include <GLFW/glfw3.h>                 // Windowing
 #include <glm/gtc/matrix_transform.hpp> // Vector maths
 #include <glm/gtx/string_cast.hpp>      // For debugging
-#include <tdogl/Program.h>
 
 #include "Graphics.hpp"
-#include "helpers/RootDir.h"
-#include "Physics.hpp"
-// constants
-const glm::vec2 SCREEN_SIZE(800, 600);
+#include "Particles.hpp"
 
-// globals
-GLFWwindow *gWindow = NULL;
-tdogl::Program *gProgram = NULL;
-
-static void LoadShaders()
-{
-    std::vector<tdogl::Shader> shaders;
-    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR "/resources/vertex-shader.glsl", GL_VERTEX_SHADER));
-    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR "/resources/geometry-shader.glsl", GL_GEOMETRY_SHADER));
-    shaders.push_back(tdogl::Shader::shaderFromFile(ROOT_DIR "/resources/fragment-shader.glsl", GL_FRAGMENT_SHADER));
-    gProgram = new tdogl::Program(shaders);
-
-    gProgram->use();
-    // glm::mat4 projection = glm::perspective(glm::radians(50.0f), SCREEN_SIZE.x/SCREEN_SIZE.y, 0.1f, 10.0f);
-    GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
-    glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
-    gProgram->setUniform("projection", projection);
-
-    glm::mat4 camera = glm::translate(glm::mat4(1.0f), glm::vec3(-1.f, -.5f, 0.f));
-    gProgram->setUniform("camera", camera);
-
-    gProgram->stopUsing();
-}
-
-static Model *FluidModelFromParticles(const ParticleSet &particleSet)
-{
-    Model *fluidModel = new Model();
-    glGenVertexArrays(1, &fluidModel->vao);
-    glGenBuffers(1, &fluidModel->vbo);
-    fluidModel->drawCount = particleSet.particles.size();
-
-    glBindVertexArray(fluidModel->vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, fluidModel->vbo);
-
-    std::vector<GLfloat> vertexData;
-    for (std::vector<Particle>::const_iterator it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
-    {
-        // Position
-        vertexData.push_back(it->position.x);
-        vertexData.push_back(it->position.y);
-        // Color
-        vertexData.push_back(it->position.x);
-        vertexData.push_back(it->position.y);
-        vertexData.push_back(0.f);
-        vertexData.push_back(1.f);
-    }
-
-    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
-
-    GLsizei stride = 6 * sizeof(GLfloat);
-    const GLvoid *offset = (const GLvoid *)(2 * sizeof(GLfloat));
-
-    glEnableVertexAttribArray(gProgram->attrib("vert"));
-    glVertexAttribPointer(gProgram->attrib("vert"), 2, GL_FLOAT, GL_FALSE, stride, NULL);
-
-    glEnableVertexAttribArray(gProgram->attrib("vertColor"));
-    glVertexAttribPointer(gProgram->attrib("vertColor"), 4, GL_FLOAT, GL_TRUE, stride, offset);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    return fluidModel;
-}
-
-static void Update()
-{
-    ;
-}
-
-static void Render(const Model &fluidModel)
-{
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    gProgram->use();
-
-    glBindVertexArray(fluidModel.vao);
-
-    // gProgram->setUniform("color", glm::vec4(0, 0, 1, 1));
-    glDrawArrays(GL_POINTS, 0, fluidModel.drawCount);
-
-    glBindVertexArray(0);
-
-    gProgram->stopUsing();
-    glfwSwapBuffers(gWindow);
-}
-
-void OnError(int errorCode, const char *msg)
-{
-    throw std::runtime_error(msg);
-}
-
-Graphics::Graphics(void (*OnInit)(Model *&fluidModel), void (*OnUpdate)(), void (*OnClose)())
-    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnClose(OnClose)
+Graphics::Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnClose)())
+    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnClose(OnClose), SCREEN_SIZE(800, 600)
 {
 }
 
@@ -115,10 +17,37 @@ Graphics::~Graphics()
 {
 }
 
-void Graphics::run()
+void Graphics::OnError(int errorCode, const char *msg)
+{
+    throw std::runtime_error(msg);
+}
+
+void Graphics::Update()
+{
+    ;
+}
+
+void Graphics::Render()
+{
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    for (std::vector<const Model*>::const_iterator it = this->models.begin(); it != this->models.end(); ++it)
+    {
+        (*it)->program->use();
+        glBindVertexArray((*it)->vao);
+        // (*it)->program->setUniform("color", glm::vec4(0, 0, 1, 1));
+        glDrawArrays(GL_POINTS, 0, (*it)->drawCount);
+        glBindVertexArray(0);
+        (*it)->program->stopUsing();
+    }
+    glfwSwapBuffers(gWindow);
+}
+
+void Graphics::Run()
 {
     // initialise GLFW
-    glfwSetErrorCallback(OnError);
+    glfwSetErrorCallback(Graphics::OnError);
     if (!glfwInit())
         throw std::runtime_error("glfwInit failed");
 
@@ -161,11 +90,7 @@ void Graphics::run()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // load vertex and fragment shaders into opengl
-    LoadShaders();
-
-    Model *fluidModel;
-    _OnInit(&fluidModel);
+    _OnInit();
 
     // run while the window is open
     while (!glfwWindowShouldClose(gWindow))
@@ -177,7 +102,7 @@ void Graphics::run()
         Update();
 
         // draw one frame
-        Render(*fluidModel);
+        Render();
 
         // check for errors
         GLenum error = glGetError();
