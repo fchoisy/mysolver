@@ -32,7 +32,7 @@ void Graphics::Render()
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (std::vector<const Model*>::const_iterator it = this->models.begin(); it != this->models.end(); ++it)
+    for (std::vector<const Model *>::const_iterator it = this->models.begin(); it != this->models.end(); ++it)
     {
         (*it)->program->use();
         glBindVertexArray((*it)->vao);
@@ -57,7 +57,7 @@ void Graphics::Run()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    gWindow = glfwCreateWindow((int)SCREEN_SIZE.x, (int)SCREEN_SIZE.y, "OpenGL Tutorial", NULL, NULL);
+    gWindow = glfwCreateWindow((int)SCREEN_SIZE.x, (int)SCREEN_SIZE.y, "Fluid Solver", NULL, NULL);
     if (!gWindow)
         throw std::runtime_error("glfwCreateWindow failed. Can your hardware handle OpenGL 3.2?");
 

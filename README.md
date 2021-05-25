@@ -8,7 +8,7 @@ Third-party dependencies:
 
 To-do
 - neighbor search
-    - naively
+    - naively, naively with unordered pairs (triangularly)
     - efficiently
     - visualize
 

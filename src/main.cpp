@@ -57,11 +57,21 @@ void MyOnInit()
         }
     }
 
-    Particle &frontParticle = particleSet.particles.front();
-    std::vector<const Particle *> *neighbors = particleSet.FindNeighbors(frontParticle);
+    for (std::vector<Particle>::iterator it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
+    {
+        std::cout << particleSet.FindNeighbors(*it)->size() << " ";
+        if (((it - particleSet.particles.begin() + 1) % 10) == 0) {
+        std::cout << std::endl;
+        }
+    }
+    std::cout << std::endl;
+
+    Particle &someParticle = particleSet.particles[6 * 10 + 3];
+    std::cout << "My position: " << glm::to_string(someParticle.position) << std::endl;
+    std::vector<const Particle *> *neighbors = particleSet.FindNeighbors(someParticle);
     for (std::vector<const Particle *>::const_iterator it = neighbors->begin(); it != neighbors->end(); ++it)
     {
-        std::cout << glm::to_string((*it)->position) << std::endl;
+        std::cout << "Neighbor " << it - neighbors->begin() + 1 << ": " << glm::to_string((*it)->position) << std::endl;
     }
 
     // create buffer and fill it with the points of the cube
@@ -78,7 +88,7 @@ void MyOnInit()
 
 void MyOnUpdate()
 {
-    std::cout << "Just updated" << std::endl;
+    // std::cout << "Just updated" << std::endl;
 }
 
 void MyOnClose()
