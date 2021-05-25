@@ -18,6 +18,7 @@
 #include "Graphics.hpp"
 #include "Particles.hpp"
 #include "Model.hpp"
+#include "Algorithms.hpp"
 #include "helpers/RootDir.h"
 
 // GLuint gVAO = 0;
@@ -59,16 +60,17 @@ void MyOnInit()
 
     for (std::vector<Particle>::iterator it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
     {
-        std::cout << particleSet.FindNeighbors(*it)->size() << " ";
-        if (((it - particleSet.particles.begin() + 1) % 10) == 0) {
-        std::cout << std::endl;
+        std::cout << FindNeighbors(particleSet, *it)->size() << " ";
+        if (((it - particleSet.particles.begin() + 1) % 10) == 0)
+        {
+            std::cout << std::endl;
         }
     }
     std::cout << std::endl;
 
     Particle &someParticle = particleSet.particles[6 * 10 + 3];
     std::cout << "My position: " << glm::to_string(someParticle.position) << std::endl;
-    std::vector<const Particle *> *neighbors = particleSet.FindNeighbors(someParticle);
+    std::vector<const Particle *> *neighbors = FindNeighbors(particleSet, someParticle);
     for (std::vector<const Particle *>::const_iterator it = neighbors->begin(); it != neighbors->end(); ++it)
     {
         std::cout << "Neighbor " << it - neighbors->begin() + 1 << ": " << glm::to_string((*it)->position) << std::endl;
@@ -93,6 +95,8 @@ void MyOnUpdate()
 
 void MyOnClose()
 {
+    if (gModel)
+        delete gModel;
     std::cout << "Just closed" << std::endl;
 }
 

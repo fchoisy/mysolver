@@ -22,7 +22,7 @@ public:
     ParticleSet(/* args */);
     ~ParticleSet();
     std::vector<GLfloat> *ToVertexData();
-    std::vector<const Particle *> *FindNeighbors(Particle &particle);
+    // std::vector<const Particle *> *FindNeighbors(Particle &particle);
     std::vector<Particle> particles;
     GLfloat particleSpacing;
 };
