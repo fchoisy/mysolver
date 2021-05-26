@@ -60,7 +60,7 @@ void MyOnInit()
     }
     // Find neighbors for each particle position
     std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet);
-
+    //
     for (auto &&it = allNeighbors->begin(); it != allNeighbors->end(); ++it)
     {
         std::cout << (*it)->size() << " ";

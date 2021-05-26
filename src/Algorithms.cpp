@@ -1,10 +1,5 @@
 #include "Algorithms.hpp"
 
-int dummy(int input)
-{
-    return 5 * input;
-}
-
 std::vector<std::vector<const Particle *> *> *FindAllNeighbors(const ParticleSet &particleSet)
 {
     std::vector<std::vector<const Particle *> *> *allNeighbors = new std::vector<std::vector<const Particle *> *>();
