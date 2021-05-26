@@ -45,6 +45,7 @@ Graphics *gGraphics = NULL;
 
 void MyOnInit()
 {
+    // Init particle set
     ParticleSet particleSet;
     particleSet.particles = std::vector<Particle>();
     particleSet.particleSpacing = 0.1f;
@@ -57,21 +58,23 @@ void MyOnInit()
             particleSet.particles.push_back(part);
         }
     }
+    // Find neighbors for each particle position
+    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet);
 
-    for (std::vector<Particle>::iterator it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
+    for (auto &&it = allNeighbors->begin(); it != allNeighbors->end(); ++it)
     {
-        std::cout << FindNeighbors(particleSet, *it)->size() << " ";
-        if (((it - particleSet.particles.begin() + 1) % 10) == 0)
+        std::cout << (*it)->size() << " ";
+        if (((it - allNeighbors->begin() + 1) % 10) == 0)
         {
             std::cout << std::endl;
         }
     }
     std::cout << std::endl;
-
+    // Find neighbors for one particular position
     Particle &someParticle = particleSet.particles[6 * 10 + 3];
     std::cout << "My position: " << glm::to_string(someParticle.position) << std::endl;
-    std::vector<const Particle *> *neighbors = FindNeighbors(particleSet, someParticle);
-    for (std::vector<const Particle *>::const_iterator it = neighbors->begin(); it != neighbors->end(); ++it)
+    std::vector<const Particle *> *neighbors = (*allNeighbors)[6 * 10 + 3];
+    for (auto &&it = neighbors->begin(); it != neighbors->end(); ++it)
     {
         std::cout << "Neighbor " << it - neighbors->begin() + 1 << ": " << glm::to_string((*it)->position) << std::endl;
     }
