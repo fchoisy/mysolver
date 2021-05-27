@@ -1,5 +1,5 @@
 
-
+#include <iostream>
 #include "Particles.hpp"
 
 Particle::Particle(/* args */)
@@ -35,3 +35,10 @@ std::vector<GLfloat> *ParticleSet::ToVertexData()
     return vertexData;
 }
 
+void ParticleSet::PrintAllPositions()
+{
+    for (auto &&particle : this->particles)
+    {
+        std::cout << particle.position.x << " " << particle.position.y << std::endl;
+    }
+}

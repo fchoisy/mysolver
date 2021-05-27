@@ -71,13 +71,13 @@ void MyOnInit()
     }
     std::cout << std::endl;
     // Find neighbors for one particular position
-    Particle &someParticle = particleSet.particles[6 * 10 + 3];
-    std::cout << "My position: " << glm::to_string(someParticle.position) << std::endl;
-    std::vector<const Particle *> *neighbors = (*allNeighbors)[6 * 10 + 3];
-    for (auto &&it = neighbors->begin(); it != neighbors->end(); ++it)
-    {
-        std::cout << "Neighbor " << it - neighbors->begin() + 1 << ": " << glm::to_string((*it)->position) << std::endl;
-    }
+    // Particle &someParticle = particleSet.particles[6 * 10 + 3];
+    // std::cout << "My position: " << glm::to_string(someParticle.position) << std::endl;
+    // std::vector<const Particle *> *neighbors = (*allNeighbors)[6 * 10 + 3];
+    // for (auto &&it = neighbors->begin(); it != neighbors->end(); ++it)
+    // {
+    //     std::cout << "Neighbor " << it - neighbors->begin() + 1 << ": " << glm::to_string((*it)->position) << std::endl;
+    // }
 
     // create buffer and fill it with the points of the cube
     // LoadVertexData(particleSet);
