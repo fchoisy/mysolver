@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp> // Vector maths
+#include <glm/vec2.hpp>
 
 class Particle
 {

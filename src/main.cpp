@@ -11,10 +11,10 @@
 #include <iomanip> // std::setw()
 #include <limits>
 
-#include <GL/glew.h>                    // Runtime loading of OpenGL API functions
-#include <GLFW/glfw3.h>                 // Windowing
-#include <glm/gtc/matrix_transform.hpp> // Vector maths
-#include <glm/gtx/string_cast.hpp>      // For debugging
+#include <GL/glew.h>               // Runtime loading of OpenGL API functions
+#include <GLFW/glfw3.h>            // Windowing
+#include <glm/vec2.hpp>            // Vector maths
+#include <glm/gtx/string_cast.hpp> // For debugging
 #include <tdogl/Program.h>
 
 #include "Graphics.hpp"
@@ -29,6 +29,19 @@ Graphics *gGraphics = NULL;
 void MyOnInit()
 {
     // Init particle set
+    // ParticleSet particleSet;
+    // particleSet.particles = std::vector<Particle>();
+    // particleSet.particleSpacing = 0.1f;
+    // for (size_t i = 0; i < 10; i++)
+    // {
+    //     for (size_t j = 0; j < 10; j++)
+    //     {
+    //         Particle part;
+    //         part.position = glm::vec2(i * particleSet.particleSpacing, j * particleSet.particleSpacing);
+    //         particleSet.particles.push_back(part);
+    //     }
+    // }
+
     ParticleSet particleSet;
     particleSet.particles = std::vector<Particle>();
     particleSet.particleSpacing = 0.1f;
@@ -41,27 +54,39 @@ void MyOnInit()
             particleSet.particles.push_back(part);
         }
     }
-    // Apply random translation to the particle set
-    float rangeWidth = 9.5f;
-    float randomTranslationX = (((float)random()) / (float)(RAND_MAX)) * rangeWidth - .5f * rangeWidth;
-    float randomTranslationY = (((float)random()) / (float)(RAND_MAX)) * rangeWidth - .5f * rangeWidth;
-    for (auto &&particle : particleSet.particles)
+
+    std::vector<GLfloat> kernelFunctionGraph;
+    glm::vec2 origin(0, 0);
+    const uint numSteps = 100;
+    const float rangeStart = -.5f;
+    const float rangeStop = .5f;
+    const float stepSize = (rangeStop - rangeStart) / numSteps;
+    for (uint i = 0; i < numSteps; i++)
     {
-        particle.position.x += randomTranslationX;
-        particle.position.y += randomTranslationY;
+        float x = rangeStart + stepSize * i;
+        // float y = i / 10.f + 1;
+        float y = KernelFunction(origin, glm::vec2(x, 0), .2) / 5;
+        std::cout << y << std::endl;
+        kernelFunctionGraph.push_back(x);
+        kernelFunctionGraph.push_back(y);
+        kernelFunctionGraph.push_back(1);
+        kernelFunctionGraph.push_back(1);
+        kernelFunctionGraph.push_back(1);
+        kernelFunctionGraph.push_back(1);
     }
-    // Find neighbors for each particle position
-    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing);
-    //
-    for (auto &&it = allNeighbors->begin(); it != allNeighbors->end(); ++it)
-    {
-        std::cout << std::setw(4) << (*it)->size() << " ";
-        if (((it - allNeighbors->begin() + 1) % 10) == 0)
-        {
-            std::cout << std::endl;
-        }
-    }
-    std::cout << std::endl;
+
+    // // Find neighbors for each particle position
+    // std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing);
+    // //
+    // for (auto &&it = allNeighbors->begin(); it != allNeighbors->end(); ++it)
+    // {
+    //     std::cout << std::setw(4) << (*it)->size() << " ";
+    //     if (((it - allNeighbors->begin() + 1) % 10) == 0)
+    //     {
+    //         std::cout << std::endl;
+    //     }
+    // }
+    // std::cout << std::endl;
     // Find neighbors for one particular position
     // Particle &someParticle = particleSet.particles[6 * 10 + 3];
     // std::cout << "My position: " << glm::to_string(someParticle.position) << std::endl;
@@ -78,8 +103,13 @@ void MyOnInit()
                        ROOT_DIR "resources/vertex-shader.glsl",
                        ROOT_DIR "resources/geometry-shader.glsl",
                        ROOT_DIR "resources/fragment-shader.glsl");
+    Model *graphModel = new Model(kernelFunctionGraph,
+                                  ROOT_DIR "resources/vertex-shader.glsl",
+                                  ROOT_DIR "resources/geometry-shader.glsl",
+                                  ROOT_DIR "resources/fragment-shader.glsl");
 
-    gGraphics->models.push_back(gModel);
+    // gGraphics->models.push_back(gModel);
+    gGraphics->models.push_back(graphModel);
     std::cout << "Just initialized" << std::endl;
 }
 
