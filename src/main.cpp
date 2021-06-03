@@ -202,9 +202,9 @@ void MyOnInit()
                                  GL_LINES);
 
     gGraphics->models.push_back(axesModel);
-    gGraphics->models.push_back(gModel);
+    // gGraphics->models.push_back(gModel);
     gGraphics->models.push_back(kernelModel);
-    gGraphics->models.push_back(kernelDerivativeModel);
+    // gGraphics->models.push_back(kernelDerivativeModel);
     std::cout << "Just initialized" << std::endl;
 }
 

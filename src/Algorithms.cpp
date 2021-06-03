@@ -34,7 +34,7 @@ float KernelFunction(const glm::vec2 &position_i, const glm::vec2 &position_j, c
     float q = glm::distance(position_i, position_j) / h;
     float t1 = glm::max(1.f - q, 0.f);
     float t2 = glm::max(2.f - q, 0.f);
-    return alpha * (t2 * t2 * t2 - t1 * t1 * t1);
+    return alpha * (t2 * t2 * t2 - 4 * t1 * t1 * t1);
 }
 
 glm::vec2 KernelFunctionDerivative(const glm::vec2 &position_i, const glm::vec2 &position_j, const float &h)
