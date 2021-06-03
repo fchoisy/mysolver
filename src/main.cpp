@@ -8,6 +8,8 @@
 
 // standard C++ libraries
 #include <iostream>
+#include <iomanip> // std::setw()
+#include <limits>
 
 #include <GL/glew.h>                    // Runtime loading of OpenGL API functions
 #include <GLFW/glfw3.h>                 // Windowing
@@ -20,25 +22,6 @@
 #include "Model.hpp"
 #include "Algorithms.hpp"
 #include "helpers/RootDir.h"
-
-// GLuint gVAO = 0;
-// GLuint gVBO = 0;
-
-// static void FindAllNeighbors(ParticleSet &particleSet)
-// {
-//     // Naive O(n^2)
-//     for (std::vector<Particle>::iterator it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
-//     {
-//         (*it).neighbors = *(new std::vector<const Particle *>());
-//         for (std::vector<Particle>::const_iterator it2 = particleSet.particles.begin(); it2 != particleSet.particles.end(); ++it2)
-//         {
-//             if (it.base() != it2.base() && glm::distance((*it).position, (*it2).position) > particleSet.particleSpacing)
-//             {
-//                 (*it).neighbors.push_back(it2.base());
-//             }
-//         }
-//     }
-// }
 
 Model *gModel = NULL;
 Graphics *gGraphics = NULL;
@@ -58,12 +41,21 @@ void MyOnInit()
             particleSet.particles.push_back(part);
         }
     }
+    // Apply random translation to the particle set
+    float rangeWidth = 9.5f;
+    float randomTranslationX = (((float)random()) / (float)(RAND_MAX)) * rangeWidth - .5f * rangeWidth;
+    float randomTranslationY = (((float)random()) / (float)(RAND_MAX)) * rangeWidth - .5f * rangeWidth;
+    for (auto &&particle : particleSet.particles)
+    {
+        particle.position.x += randomTranslationX;
+        particle.position.y += randomTranslationY;
+    }
     // Find neighbors for each particle position
-    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet);
+    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing);
     //
     for (auto &&it = allNeighbors->begin(); it != allNeighbors->end(); ++it)
     {
-        std::cout << (*it)->size() << " ";
+        std::cout << std::setw(4) << (*it)->size() << " ";
         if (((it - allNeighbors->begin() + 1) % 10) == 0)
         {
             std::cout << std::endl;

@@ -4,127 +4,57 @@
 #include <cstdlib> // Random
 #include <ctime>   // To fix seed
 #include <cmath>   // For cos and sin
+// Tested files
 #include <Algorithms.hpp>
 #include <Particles.hpp>
+#include "test-algorithms.hpp"
 
 void RequireNeighborCountIsCorrect(const ParticleSet &particleSet)
 {
-    static const std::vector<size_t> expectedNeighborsCount{
-        4,
-        6,
-        6,
-        6,
-        6,
-        6,
-        6,
-        6,
-        6,
-        4,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        6,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        9,
-        6,
-        4,
-        6,
-        6,
-        6,
-        6,
-        6,
-        6,
-        6,
-        6,
-        4,
-    };
     // Find neighbors
-    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet);
+    // The search radius is increased slightly to avoid irregularities at the border
+    std::vector<std::vector<const Particle *> *> *allNeighborsSmall = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing + 1.e-05);
     // Check number of neighbors
     std::vector<size_t> neighborsCount;
-    for (auto &&it = allNeighbors->begin(); it != allNeighbors->end(); ++it)
+    for (auto &&it = allNeighborsSmall->begin(); it != allNeighborsSmall->end(); ++it)
     {
         neighborsCount.push_back((*it)->size());
         delete *it;
     }
-    delete allNeighbors;
+    delete allNeighborsSmall;
     REQUIRE(neighborsCount == expectedNeighborsCount);
 }
 
-TEST_CASE("Number of neighbors", "[neighbors]")
+void ApplyRandomTranslation(ParticleSet &particleSet)
+{
+
+    // Apply random translation to the particle set
+    float rangeWidth = 10.f;
+    float randomTranslationX = (((float)random()) / (float)(RAND_MAX)) * rangeWidth - .5f * rangeWidth;
+    float randomTranslationY = (((float)random()) / (float)(RAND_MAX)) * rangeWidth - .5f * rangeWidth;
+    for (auto &&particle : particleSet.particles)
+    {
+        particle.position.x += randomTranslationX;
+        particle.position.y += randomTranslationY;
+    }
+    RequireNeighborCountIsCorrect(particleSet);
+}
+
+void ApplyRandomRotation(ParticleSet &particleSet)
+{
+    // Apply random rotation to the particle set
+    float theta = ((float)rand()) / (float)(RAND_MAX)*3.15f;
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    for (auto &&particle : particleSet.particles)
+    {
+        float oldX = particle.position.x;
+        particle.position.x = oldX * cosTheta - particle.position.y * sinTheta;
+        particle.position.y = oldX * sinTheta + particle.position.y * cosTheta;
+    }
+}
+
+TEST_CASE("Number of neighbors is correct", "[neighbors]")
 {
     // Generate particle set
     ParticleSet particleSet;
@@ -139,29 +69,24 @@ TEST_CASE("Number of neighbors", "[neighbors]")
             particleSet.particles.push_back(part);
         }
     }
+    SECTION("before any transformation")
+    {
+        RequireNeighborCountIsCorrect(particleSet);
+    }
 
-    RequireNeighborCountIsCorrect(particleSet);
-
-    // TODO change seed!
+    // Set seed for random generator
     srand(time(0));
 
-    // Random uniform translation
-    float randomTranslationX = (((float)random()) / RAND_MAX) * 100.f - 50.f;
-    float randomTranslationY = (((float)random()) / RAND_MAX) * 100.f - 50.f;
-    for (auto &&particle : particleSet.particles)
+    // For each SECTION, the TEST_CASE is executed from the start (see Catch2 docs).
+    SECTION("after translation")
     {
-        particle.position.x += randomTranslationX;
-        particle.position.y += randomTranslationY;
+        ApplyRandomTranslation(particleSet);
+        RequireNeighborCountIsCorrect(particleSet);
     }
-    RequireNeighborCountIsCorrect(particleSet);
 
-    // Random uniform rotation
-    float theta = ((float)rand()) / RAND_MAX * 3.15f;
-    for (auto &&particle : particleSet.particles)
+    SECTION("after rotation")
     {
-        float oldX = particle.position.x;
-        particle.position.x = oldX * cos(theta) - particle.position.y * sin(theta);
-        particle.position.y = oldX * sin(theta) + particle.position.y * cos(theta);
+        ApplyRandomRotation(particleSet);
+        RequireNeighborCountIsCorrect(particleSet);
     }
-    RequireNeighborCountIsCorrect(particleSet);
 }

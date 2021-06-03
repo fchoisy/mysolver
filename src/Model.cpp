@@ -51,7 +51,8 @@ void Model::LoadShaders(std::string vertexShaderFileName, std::string geometrySh
     glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
     this->program->setUniform("projection", projection);
 
-    glm::mat4 camera = glm::translate(glm::mat4(1.0f), glm::vec3(-1.f, -.5f, 0.f));
+    glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.5f, -.5f, 0.f)), glm::vec3(.5f, .5f, .5f));
+    // glm::mat4 camera = glm::mat4(1.0f);
     this->program->setUniform("camera", camera);
 
     this->program->stopUsing();

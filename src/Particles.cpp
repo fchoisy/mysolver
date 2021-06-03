@@ -42,3 +42,5 @@ void ParticleSet::PrintAllPositions()
         std::cout << particle.position.x << " " << particle.position.y << std::endl;
     }
 }
+
+
