@@ -2,14 +2,15 @@
 
 #include <GL/glew.h>                    // Runtime loading of OpenGL API functions
 #include <GLFW/glfw3.h>                 // Windowing
+#include <glm/common.hpp>               // Vector maths
 #include <glm/gtc/matrix_transform.hpp> // Vector maths
-#include <glm/gtx/string_cast.hpp>      // For debugging
+// #include <glm/gtx/string_cast.hpp>      // For debugging
 
 #include "Graphics.hpp"
 #include "Particles.hpp"
 
 Graphics::Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnClose)())
-    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnClose(OnClose), SCREEN_SIZE(800, 600)
+    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnClose(OnClose), SCREEN_SIZE(800, 600), internalState{.5f}
 {
 }
 
@@ -36,12 +37,30 @@ void Graphics::Render()
     {
         (*it)->program->use();
         glBindVertexArray((*it)->vao);
-        // (*it)->program->setUniform("color", glm::vec4(0, 0, 1, 1));
+        GLfloat aspect = 800.f / 600.f;
+        glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
+        (*it)->program->setUniform("projection", projection);
+
+        glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.2f, -.2f, 0.f)), glm::vec3(internalState.zoomLevel, internalState.zoomLevel, internalState.zoomLevel));
+        (*it)->program->setUniform("camera", camera);
+
         glDrawArrays(GL_POINTS, 0, (*it)->drawCount);
         glBindVertexArray(0);
         (*it)->program->stopUsing();
     }
     glfwSwapBuffers(gWindow);
+}
+
+void OnScroll(GLFWwindow *window, double xoffset, double yoffset)
+{
+    // struct internalState
+    InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+    // if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
+    // {
+    //     internalState->cameraX += yoffset;
+    // }
+    // else
+    internalState->zoomLevel = glm::clamp((float)(internalState->zoomLevel + yoffset * .5f), 0.1f, 10.f);
 }
 
 void Graphics::Run()
@@ -63,6 +82,8 @@ void Graphics::Run()
 
     // GLFW settings
     glfwMakeContextCurrent(gWindow);
+    glfwSetWindowUserPointer(gWindow, &(this->internalState));
+    glfwSetScrollCallback(gWindow, OnScroll);
 
     // initialise GLEW
     glewExperimental = GL_TRUE; //stops glew crashing on OSX :-/

@@ -1,7 +1,15 @@
 #pragma once
 
 #include <vector>
+#include <GLFW/glfw3.h>
 #include "Model.hpp"
+
+struct InternalState
+{
+    float zoomLevel;
+    // float cameraX;
+    // float cameraY;
+};
 
 class Graphics
 {
@@ -11,6 +19,7 @@ private:
     void (*_OnClose)();
     const glm::vec2 SCREEN_SIZE;
     GLFWwindow *gWindow;
+    InternalState internalState;
 
 public:
     Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnClose)());
@@ -19,5 +28,5 @@ public:
     void Update();
     void Render();
     void Run();
-    std::vector<const Model*> models;
+    std::vector<const Model *> models;
 };

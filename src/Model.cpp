@@ -44,16 +44,16 @@ void Model::LoadShaders(std::string vertexShaderFileName, std::string geometrySh
     shaders.push_back(tdogl::Shader::shaderFromFile(fragmentShaderFileName, GL_FRAGMENT_SHADER));
     this->program = new tdogl::Program(shaders);
 
-    this->program->use();
-    // glm::mat4 projection = glm::perspective(glm::radians(50.0f), SCREEN_SIZE.x/SCREEN_SIZE.y, 0.1f, 10.0f);
-    // GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
-    GLfloat aspect = 800.f / 600.f;
-    glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
-    this->program->setUniform("projection", projection);
+    // this->program->use();
+    // // glm::mat4 projection = glm::perspective(glm::radians(50.0f), SCREEN_SIZE.x/SCREEN_SIZE.y, 0.1f, 10.0f);
+    // // GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
+    // GLfloat aspect = 800.f / 600.f;
+    // glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
+    // this->program->setUniform("projection", projection);
 
-    glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.5f, -.5f, 0.f)), glm::vec3(.5f, .5f, .5f));
-    // glm::mat4 camera = glm::mat4(1.0f);
-    this->program->setUniform("camera", camera);
+    // glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.5f, -.5f, 0.f)), glm::vec3(.5f, .5f, .5f));
+    // // glm::mat4 camera = glm::mat4(1.0f);
+    // this->program->setUniform("camera", camera);
 
-    this->program->stopUsing();
+    // this->program->stopUsing();
 }
