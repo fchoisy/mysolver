@@ -26,48 +26,56 @@
 Model *gModel = NULL;
 Graphics *gGraphics = NULL;
 
-// std::vector<GLfloat> KernelFunctionVertexData()
-// {
-//     std::vector<GLfloat> kernelFunctionGraph;
-//     glm::vec2 origin(0, 0);
-//     const uint numSteps = 100;
-//     const float rangeStart = -.5f;
-//     const float rangeStop = .5f;
-//     const float stepSize = (rangeStop - rangeStart) / numSteps;
-//     for (uint i = 0; i < numSteps; i++)
-//     {
-//         float x = rangeStart + stepSize * i;
-//         // float y = i / 10.f + 1;
-//         // float y = KernelFunction(origin, glm::vec2(x, 0), .1) / 5;
-//         float y = KernelFunctionDerivative(origin, glm::vec2(x, 0), .1) / 5;
-//         std::cout << y << std::endl;
-//         kernelFunctionGraph.push_back(x);
-//         kernelFunctionGraph.push_back(y);
-//         kernelFunctionGraph.push_back(1);
-//         kernelFunctionGraph.push_back(1);
-//         kernelFunctionGraph.push_back(1);
-//         kernelFunctionGraph.push_back(1);
-//     }
-//     return kernelFunctionGraph;
-// }
+std::vector<GLfloat> *KernelFunctionVertexData(const float &h)
+{
+    std::vector<GLfloat> *kernelFunctionGraph = new std::vector<GLfloat>;
+    glm::vec2 origin(0, 0);
+    const uint numSteps = 100;
+    const float rangeStart = -8.f;
+    const float rangeStop = 8.f;
+    const float stepSize = (rangeStop - rangeStart) / numSteps;
+    for (uint i = 0; i < numSteps; i++)
+    {
+        float x = rangeStart + stepSize * i;
+        float y = KernelFunction(origin, glm::vec2(x, 0.f), h) * 10.f;
+        // std::cout << y << std::endl;
+        kernelFunctionGraph->push_back(x);
+        kernelFunctionGraph->push_back(y);
+        kernelFunctionGraph->push_back(1);
+        kernelFunctionGraph->push_back(1);
+        kernelFunctionGraph->push_back(1);
+        kernelFunctionGraph->push_back(1);
+    }
+    return kernelFunctionGraph;
+}
+
+std::vector<GLfloat> *KernelDerivativeVertexData(const float &h)
+{
+    std::vector<GLfloat> *kernelDerivativeGraph = new std::vector<GLfloat>;
+    glm::vec2 origin(0, 0);
+    const uint numSteps = 100;
+    const float rangeStart = -8.f;
+    const float rangeStop = 8.f;
+    const float stepSize = (rangeStop - rangeStart) / numSteps;
+    for (uint i = 0; i < numSteps; i++)
+    {
+        float x = rangeStart + stepSize * i;
+        float y = KernelFunctionDerivative(origin, glm::vec2(x, 0.f), h).x * 10.f;
+        kernelDerivativeGraph->push_back(x);
+        kernelDerivativeGraph->push_back(y);
+        kernelDerivativeGraph->push_back(1);
+        kernelDerivativeGraph->push_back(1);
+        kernelDerivativeGraph->push_back(1);
+        kernelDerivativeGraph->push_back(1);
+    }
+    return kernelDerivativeGraph;
+}
 
 void MyOnInit()
 {
     // Init particle set
-    // ParticleSet particleSet;
-    // particleSet.particles = std::vector<Particle>();
-    // particleSet.particleSpacing = 0.1f;
-    // for (size_t i = 0; i < 10; i++)
-    // {
-    //     for (size_t j = 0; j < 10; j++)
-    //     {
-    //         Particle part;
-    //         part.position = glm::vec2(i * particleSet.particleSpacing, j * particleSet.particleSpacing);
-    //         particleSet.particles.push_back(part);
-    //     }
-    // }
-
     ParticleSet particleSet(10, 10, .1f);
+
     // std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing + 1e-6);
 
     // for (auto &&it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
@@ -84,48 +92,6 @@ void MyOnInit()
     //         std::cout << std::endl;
     //     }
     // }
-
-    std::vector<GLfloat> *kernelFunctionGraph = new std::vector<GLfloat>;
-    {
-        glm::vec2 origin(0, 0);
-        const uint numSteps = 100;
-        const float rangeStart = -8.f;
-        const float rangeStop = 8.f;
-        const float stepSize = (rangeStop - rangeStart) / numSteps;
-        for (uint i = 0; i < numSteps; i++)
-        {
-            float x = rangeStart + stepSize * i;
-            float y = KernelFunction(origin, glm::vec2(x, 0.f), 2.f) * 10.f;
-            // std::cout << y << std::endl;
-            kernelFunctionGraph->push_back(x);
-            kernelFunctionGraph->push_back(y);
-            kernelFunctionGraph->push_back(1);
-            kernelFunctionGraph->push_back(1);
-            kernelFunctionGraph->push_back(1);
-            kernelFunctionGraph->push_back(1);
-        }
-    }
-
-    std::vector<GLfloat> *kernelDerivativeGraph = new std::vector<GLfloat>;
-    {
-        glm::vec2 origin(0, 0);
-        const uint numSteps = 100;
-        const float rangeStart = -.8f;
-        const float rangeStop = .8f;
-        const float stepSize = (rangeStop - rangeStart) / numSteps;
-        for (uint i = 0; i < numSteps; i++)
-        {
-            float x = rangeStart + stepSize * i;
-            float y = KernelFunctionDerivative(origin, glm::vec2(x, 0.f), 2.f).x * 10.f;
-            std::cout << x << "\t" << y << std::endl;
-            kernelDerivativeGraph->push_back(x);
-            kernelDerivativeGraph->push_back(.5);
-            kernelDerivativeGraph->push_back(1);
-            kernelDerivativeGraph->push_back(1);
-            kernelDerivativeGraph->push_back(1);
-            kernelDerivativeGraph->push_back(1);
-        }
-    }
 
     // // Find neighbors for each particle position
     // std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing);
@@ -179,32 +145,66 @@ void MyOnInit()
         1,
     };
 
-    gModel = new Model(*particleSet.ToVertexData(),
-                       ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
-                       ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
-                       ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
-                       GL_POINTS);
-    Model *kernelModel = new Model(*kernelFunctionGraph,
-                                   ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
-                                   "",
-                                   ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
-                                   GL_LINE_STRIP);
-    Model *kernelDerivativeModel = new Model(*kernelDerivativeGraph,
-                                             ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
-                                             "",
-                                             ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
-                                             GL_LINE_STRIP);
-
     Model *axesModel = new Model(*axesVertexData,
                                  ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
                                  "",
                                  ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
                                  GL_LINES);
-
     gGraphics->models.push_back(axesModel);
+
+    gModel = new Model(*particleSet.ToVertexData(),
+                       ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
+                       ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
+                       ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
+                       GL_POINTS);
+
+    std::vector<GLfloat> *kernelFunctionGraph1 = KernelFunctionVertexData(1.f);
+    Model *kernelModel1 = new Model(*kernelFunctionGraph1,
+                                    ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                    "",
+                                    ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                    GL_LINE_STRIP);
+    gGraphics->models.push_back(kernelModel1);
+
+    std::vector<GLfloat> *kernelFunctionGraph2 = KernelFunctionVertexData(2.f);
+    Model *kernelModel2 = new Model(*kernelFunctionGraph2,
+                                    ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                    "",
+                                    ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                    GL_LINE_STRIP);
+    gGraphics->models.push_back(kernelModel2);
+
+    std::vector<GLfloat> *kernelFunctionGraph4 = KernelFunctionVertexData(4.f);
+    Model *kernelModel4 = new Model(*kernelFunctionGraph4,
+                                    ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                    "",
+                                    ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                    GL_LINE_STRIP);
+    gGraphics->models.push_back(kernelModel4);
+
+    // std::vector<GLfloat> *kernelDerivativeGraph1 = KernelDerivativeVertexData(1.f);
+    // Model *kernelDerivativeModel1 = new Model(*kernelDerivativeGraph1,
+    //                                           ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+    //                                           "",
+    //                                           ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+    //                                           GL_LINE_STRIP);
+    // gGraphics->models.push_back(kernelDerivativeModel1);
+    // std::vector<GLfloat> *kernelDerivativeGraph2 = KernelDerivativeVertexData(2.f);
+    // Model *kernelDerivativeModel2 = new Model(*kernelDerivativeGraph2,
+    //                                           ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+    //                                           "",
+    //                                           ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+    //                                           GL_LINE_STRIP);
+    // gGraphics->models.push_back(kernelDerivativeModel2);
+    // std::vector<GLfloat> *kernelDerivativeGraph4 = KernelDerivativeVertexData(4.f);
+    // Model *kernelDerivativeModel4 = new Model(*kernelDerivativeGraph4,
+    //                                           ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+    //                                           "",
+    //                                           ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+    //                                           GL_LINE_STRIP);
+    // gGraphics->models.push_back(kernelDerivativeModel4);
+
     // gGraphics->models.push_back(gModel);
-    gGraphics->models.push_back(kernelModel);
-    // gGraphics->models.push_back(kernelDerivativeModel);
     std::cout << "Just initialized" << std::endl;
 }
 
