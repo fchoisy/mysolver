@@ -1,9 +1,12 @@
 #include "catch_amalgamated.hpp"
 
 #include <iostream>
-#include <cstdlib> // Random
-#include <ctime>   // To fix seed
-#include <cmath>   // For cos and sin
+#include <cstdlib>                 // Random
+#include <ctime>                   // To fix seed
+#include <cmath>                   // For cos and sin
+#include <glm/geometric.hpp>       // Vector maths
+#include <glm/gtx/string_cast.hpp> // For debugging
+#include <iomanip>                 // std::setw()
 // Tested files
 #include <Algorithms.hpp>
 #include <Particles.hpp>
@@ -78,5 +81,33 @@ TEST_CASE("Number of neighbors is correct", "[neighbors]")
     {
         ApplyRandomRotation(particleSet);
         RequireNeighborCountIsCorrect(particleSet);
+    }
+}
+
+TEST_CASE("Kernel function", "[kernel]")
+{
+    // Generate particle set
+    ParticleSet particleSet(10, 10, .1f);
+}
+
+TEST_CASE("Kernel derivative", "[kernel]")
+{
+    // Generate particle set
+    ParticleSet particleSet(10, 10, .1f);
+    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing + 1e-6);
+
+    for (auto &&it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
+    {
+        std::vector<const Particle *> *neighbors = allNeighbors->at(it - particleSet.particles.begin());
+        glm::vec2 kernelSum(0, 0);
+        for (auto &&neighbor : *neighbors)
+        {
+            kernelSum += KernelFunctionDerivative(it->position, neighbor->position, particleSet.particleSpacing);
+        }
+        std::cout << std::setw(6) << (glm::length(kernelSum) < .001f) << " ";
+        if (((it - particleSet.particles.begin() + 1) % 10) == 0)
+        {
+            std::cout << std::endl;
+        }
     }
 }

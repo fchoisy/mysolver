@@ -4,12 +4,13 @@
 #include "Model.hpp"
 #include "helpers/RootDir.h"
 
-Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName)
+Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode)
+    : drawMode(drawMode)
 {
     this->LoadShaders(vertexShaderFileName, geometryShaderFileName, fragmentShaderFileName);
 
     // Store number of vertices
-    this->drawCount = vertexData.size();
+    this->drawCount = vertexData.size() / 6;
     // Create VAO and VBO
     glGenVertexArrays(1, &(this->vao));
     glGenBuffers(1, &(this->vbo));
@@ -40,10 +41,10 @@ void Model::LoadShaders(std::string vertexShaderFileName, std::string geometrySh
 {
     std::vector<tdogl::Shader> shaders;
     shaders.push_back(tdogl::Shader::shaderFromFile(vertexShaderFileName, GL_VERTEX_SHADER));
-    shaders.push_back(tdogl::Shader::shaderFromFile(geometryShaderFileName, GL_GEOMETRY_SHADER));
+    if (geometryShaderFileName != "")
+        shaders.push_back(tdogl::Shader::shaderFromFile(geometryShaderFileName, GL_GEOMETRY_SHADER));
     shaders.push_back(tdogl::Shader::shaderFromFile(fragmentShaderFileName, GL_FRAGMENT_SHADER));
     this->program = new tdogl::Program(shaders);
-
     // this->program->use();
     // // glm::mat4 projection = glm::perspective(glm::radians(50.0f), SCREEN_SIZE.x/SCREEN_SIZE.y, 0.1f, 10.0f);
     // // GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;

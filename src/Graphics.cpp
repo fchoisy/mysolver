@@ -44,7 +44,7 @@ void Graphics::Render()
         glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.2f, -.2f, 0.f)), glm::vec3(internalState.zoomLevel, internalState.zoomLevel, internalState.zoomLevel));
         (*it)->program->setUniform("camera", camera);
 
-        glDrawArrays(GL_POINTS, 0, (*it)->drawCount);
+        glDrawArrays((*it)->drawMode, 0, (*it)->drawCount);
         glBindVertexArray(0);
         (*it)->program->stopUsing();
     }
