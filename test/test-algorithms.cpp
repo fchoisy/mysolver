@@ -57,18 +57,8 @@ void ApplyRandomRotation(ParticleSet &particleSet)
 TEST_CASE("Number of neighbors is correct", "[neighbors]")
 {
     // Generate particle set
-    ParticleSet particleSet;
-    particleSet.particles = std::vector<Particle>();
-    particleSet.particleSpacing = 0.1f;
-    for (size_t i = 0; i < 10; i++)
-    {
-        for (size_t j = 0; j < 10; j++)
-        {
-            Particle part;
-            part.position = glm::vec2(i * particleSet.particleSpacing, j * particleSet.particleSpacing);
-            particleSet.particles.push_back(part);
-        }
-    }
+    ParticleSet particleSet(10, 10, .1f);
+
     SECTION("before any transformation")
     {
         RequireNeighborCountIsCorrect(particleSet);

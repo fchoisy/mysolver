@@ -6,12 +6,27 @@ Particle::Particle(/* args */)
 {
 }
 
+
 Particle::~Particle()
 {
 }
 
 ParticleSet::ParticleSet(/* args */)
 {
+}
+
+ParticleSet::ParticleSet(int xCount, int yCount, float particleSpacing)
+: particles(), particleSpacing(0.1f)
+{
+    for (size_t i = 0; i < 10; i++)
+    {
+        for (size_t j = 0; j < 10; j++)
+        {
+            Particle part;
+            part.position = glm::vec2(i * particleSpacing, j * particleSpacing);
+            particles.push_back(part);
+        }
+    }
 }
 
 ParticleSet::~ParticleSet()

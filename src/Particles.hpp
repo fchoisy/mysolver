@@ -20,6 +20,7 @@ private:
     /* data */
 public:
     ParticleSet(/* args */);
+    ParticleSet(int xCount, int yCount, float particleSpacing);
     ~ParticleSet();
     std::vector<GLfloat> *ToVertexData();
     // std::vector<const Particle *> *FindNeighbors(Particle &particle);
