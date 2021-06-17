@@ -11,12 +11,15 @@
 #include <fstream>
 #include <iomanip> // std::setw()
 #include <limits>
+#include <vector>
 
 #include <GL/glew.h>               // Runtime loading of OpenGL API functions
 #include <GLFW/glfw3.h>            // Windowing
 #include <glm/vec2.hpp>            // Vector maths
 #include <glm/gtx/string_cast.hpp> // For debugging
 #include <tdogl/Program.h>
+
+#include "imgui/imgui.h"
 
 #include "Graphics.hpp"
 #include "Particles.hpp"
@@ -26,14 +29,15 @@
 
 Model *gModel = NULL;
 Graphics *gGraphics = NULL;
+std::vector<GLfloat> gPosition;
 
 // std::ofstream gOutputFile;
 
 static const glm::vec2 gravity(0.f, -9.f);
 
 // Init particle set
-ParticleSet particleSet(10, 10, .1f);
-// ParticleSet particleSet(1, 1, .1f);
+// ParticleSet particleSet(10, 10, .1f);
+ParticleSet particleSet(1, 1, .1f);
 
 static const GLfloat timeStep = .01f; // should respect the Courant-Friedrich-Levy condition
 
@@ -164,7 +168,19 @@ void MyOnUpdate()
         std::cout << particle.density << " " << particle.pressure << std::endl;
     }
     gModel->SetVertexData(particleSet.ToVertexData());
+
+    gPosition.push_back(particleSet.particles[0].position.y);
     std::cout << "Just updated" << std::endl;
+}
+
+void MyOnRender()
+{
+    ImGui::Begin("Demo window");
+    ImGui::Button("Hello!");
+
+    // const float my_values[] = {0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f};
+    ImGui::PlotLines("Positions", gPosition.data(), sizeof(GLfloat) * gPosition.size());
+    ImGui::End();
 }
 
 void MyOnClose()
@@ -181,7 +197,7 @@ void AppMain()
     // void (*OnInit)() = &MyOnInit;
     // void (*OnUpdate)() = &MyOnUpdate;
     // void (*OnClose)() = &MyOnClose;
-    gGraphics = new Graphics(&MyOnInit, &MyOnUpdate, &MyOnClose);
+    gGraphics = new Graphics(&MyOnInit, &MyOnUpdate, &MyOnRender, &MyOnClose);
     gGraphics->Run();
     delete gGraphics;
 }

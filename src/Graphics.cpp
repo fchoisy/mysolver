@@ -6,11 +6,15 @@
 #include <glm/gtc/matrix_transform.hpp> // Vector maths
 // #include <glm/gtx/string_cast.hpp>      // For debugging
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include "Graphics.hpp"
 #include "Particles.hpp"
 
-Graphics::Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnClose)())
-    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnClose(OnClose), SCREEN_SIZE(800, 600), internalState{.5f}
+Graphics::Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnRender)(), void (*OnClose)())
+    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnRender(OnRender), _OnClose(OnClose), SCREEN_SIZE(800, 600), internalState{.5f}
 {
 }
 
@@ -51,6 +55,17 @@ void Graphics::Render()
         glBindVertexArray(0);
         (*it)->program->stopUsing();
     }
+
+    _OnRender();
+    // // render GUI
+    // ImGui::Begin("Demo window");
+    // ImGui::Button("Hello!");
+    // ImGui::End();
+
+    // Render dear imgui into screen
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     glfwSwapBuffers(gWindow);
 }
 
@@ -116,11 +131,26 @@ void Graphics::Run()
 
     _OnInit();
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    // Setup Platform/Renderer bindings
+    ImGui_ImplGlfw_InitForOpenGL(gWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 150");
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
     // run while the window is open
     while (!glfwWindowShouldClose(gWindow))
     {
         // sleep until event
         glfwWaitEvents();
+
+        // feed inputs to dear imgui, start new frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
         Update();
 
@@ -140,5 +170,10 @@ void Graphics::Run()
     _OnClose();
 
     // clean up and exit
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(gWindow);
     glfwTerminate();
 }

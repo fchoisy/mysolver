@@ -19,6 +19,7 @@ file(GLOB_RECURSE HEADER_FILES
 
 configure_file(src/helpers/RootDir.h.in src/helpers/RootDir.h)
 include_directories(${CMAKE_BINARY_DIR}/src)
+include_directories(${CMAKE_BINARY_DIR}/src/imgui)
 
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 

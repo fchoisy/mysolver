@@ -16,13 +16,14 @@ class Graphics
 private:
     void (*_OnInit)();
     void (*_OnUpdate)();
+    void (*_OnRender)();
     void (*_OnClose)();
     const glm::vec2 SCREEN_SIZE;
     GLFWwindow *gWindow;
     InternalState internalState;
 
 public:
-    Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnClose)());
+    Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnRender)(), void (*OnClose)());
     ~Graphics();
     static void OnError(int errorCode, const char *msg);
     void Update();
