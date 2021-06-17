@@ -23,11 +23,11 @@ private:
     std::vector<GLfloat> vertexData;
     /* data */
 public:
-    ParticleSet(int xCount, int yCount, float particleSpacing);
+    ParticleSet(int xCount, int yCount, float spacing);
     ~ParticleSet();
     const std::vector<GLfloat> &ToVertexData();
     // std::vector<const Particle *> *FindNeighbors(Particle &particle);
     void PrintAllPositions();
     std::vector<Particle> particles;
-    GLfloat particleSpacing, restDensity, stiffness, viscosity;
+    GLfloat spacing, restDensity, stiffness, viscosity;
 };

@@ -26,6 +26,8 @@
 Model *gModel = NULL;
 Graphics *gGraphics = NULL;
 
+ofstream gOutputFile;
+
 static const glm::vec2 gravity(0.f, -9.f);
 static const GLfloat timeStep = .1f;
 
@@ -79,6 +81,8 @@ std::vector<GLfloat> *KernelDerivativeVertexData(const float &h)
 
 void MyOnInit()
 {
+    // gOutputFile.open("")
+
     Model *axesModel = Model::Axes();
     gGraphics->models.push_back(axesModel);
 
@@ -108,14 +112,14 @@ void MyOnInit()
 
 void MyOnUpdate()
 {
-    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.particleSpacing + 1.e-05);
+    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.spacing + 1.e-05);
     for (size_t i = 0; i < particleSet.particles.size(); ++i)
     {
         Particle &particle = particleSet.particles[i];
         particle.density = 0.f;
         for (auto &&neighbor : *((*allNeighbors)[i]))
         {
-            particle.density += neighbor->mass * KernelFunction(particle.position, neighbor->position, particleSet.particleSpacing);
+            particle.density += neighbor->mass * KernelFunction(particle.position, neighbor->position, particleSet.spacing);
         }
         particle.pressure = glm::max(particleSet.stiffness * (particle.density / particleSet.restDensity - 1.f), 0.f);
     }
@@ -128,7 +132,7 @@ void MyOnUpdate()
         {
             glm::vec2 positionDiff = neighbor->position - particle.position;
             glm::vec2 velocityDiff = neighbor->velocity - particle.velocity;
-            viscosityAcceleration += (neighbor->mass / neighbor->density) * (velocityDiff * positionDiff) / (glm::dot(positionDiff, positionDiff) + 0.01f * particleSet.particleSpacing * particleSet.particleSpacing) * KernelDerivative(particle.position, neighbor->position, particleSet.particleSpacing);
+            viscosityAcceleration += (neighbor->mass / neighbor->density) * (velocityDiff * positionDiff) / (glm::dot(positionDiff, positionDiff) + 0.01f * particleSet.spacing * particleSet.spacing) * KernelDerivative(particle.position, neighbor->position, particleSet.spacing);
         }
         viscosityAcceleration *= 2.f; // dimensionality
         viscosityAcceleration *= particleSet.viscosity;
@@ -136,7 +140,7 @@ void MyOnUpdate()
         glm::vec2 pressureAcceleration(0.f, 0.f);
         for (auto &&neighbor : *((*allNeighbors)[i]))
         {
-            pressureAcceleration += neighbor->mass * (particle.pressure / (particle.pressure * particle.pressure) + neighbor->pressure / (neighbor->pressure * neighbor->pressure)) * KernelDerivative(particle.position, neighbor->position, particleSet.particleSpacing);
+            pressureAcceleration += neighbor->mass * (particle.pressure / (particle.density * particle.density) + neighbor->pressure / (neighbor->density * neighbor->density)) * KernelDerivative(particle.position, neighbor->position, particleSet.spacing);
         }
         pressureAcceleration *= -1.f;
 
@@ -153,7 +157,7 @@ void MyOnUpdate()
     for (size_t i = 0; i < particleSet.particles.size(); ++i)
     {
         Particle &particle = particleSet.particles[i];
-        std::cout << particle.position.x << "\t" << particle.position.y << std::endl;
+        std::cout << particle.position.x << " " << particle.position.y << std::endl;
     }
     gModel->SetVertexData(particleSet.ToVertexData());
     std::cout << "Just updated" << std::endl;

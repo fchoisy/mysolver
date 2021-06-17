@@ -12,16 +12,18 @@ Particle::~Particle()
 {
 }
 
-ParticleSet::ParticleSet(int xCount, int yCount, float particleSpacing)
-    : particles(), particleSpacing(0.1f), vertexData(),
-      restDensity(1.f), stiffness(1.f), viscosity(1.f)
+ParticleSet::ParticleSet(int xCount, int yCount, float spacing)
+    : particles(), spacing(0.1f), vertexData(),
+      restDensity(1.f), stiffness(.8f), viscosity(.5f)
 {
     for (size_t i = 0; i < xCount; i++)
     {
         for (size_t j = 0; j < yCount; j++)
         {
             Particle part;
-            part.position = glm::vec2(i * particleSpacing, j * particleSpacing);
+            part.position = glm::vec2(i * spacing, j * spacing);
+            part.density = restDensity;
+            part.mass = restDensity * spacing * spacing;
             particles.push_back(part);
         }
     }
