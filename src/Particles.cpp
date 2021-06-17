@@ -3,20 +3,18 @@
 #include "Particles.hpp"
 
 Particle::Particle(/* args */)
+    : position(0.f, 0.f), velocity(0.f, 0.f), acceleration(0.f, 0.f),
+      density(1.f), pressure(1.f), mass(1.f)
 {
 }
-
 
 Particle::~Particle()
 {
 }
 
-ParticleSet::ParticleSet(/* args */)
-{
-}
-
 ParticleSet::ParticleSet(int xCount, int yCount, float particleSpacing)
-: particles(), particleSpacing(0.1f)
+    : particles(), particleSpacing(0.1f), vertexData(),
+      restDensity(1.f), stiffness(1.f), viscosity(1.f)
 {
     for (size_t i = 0; i < xCount; i++)
     {
@@ -33,19 +31,19 @@ ParticleSet::~ParticleSet()
 {
 }
 
-std::vector<GLfloat> *ParticleSet::ToVertexData()
+const std::vector<GLfloat> &ParticleSet::ToVertexData()
 {
-    std::vector<GLfloat> *vertexData = new std::vector<GLfloat>();
+    vertexData.clear();
     for (std::vector<Particle>::const_iterator it = this->particles.begin(); it != this->particles.end(); ++it)
     {
         // Position
-        vertexData->push_back(it->position.x);
-        vertexData->push_back(it->position.y);
+        vertexData.push_back(it->position.x);
+        vertexData.push_back(it->position.y);
         // Color
-        vertexData->push_back(it->position.x);
-        vertexData->push_back(it->position.y);
-        vertexData->push_back(0.f);
-        vertexData->push_back(1.f);
+        vertexData.push_back(it->position.x);
+        vertexData.push_back(it->position.y);
+        vertexData.push_back(0.f);
+        vertexData.push_back(1.f);
     }
     return vertexData;
 }
@@ -57,5 +55,3 @@ void ParticleSet::PrintAllPositions()
         std::cout << particle.position.x << " " << particle.position.y << std::endl;
     }
 }
-
-

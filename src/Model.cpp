@@ -53,7 +53,7 @@ Model *Model::ParticleVisualization(const std::vector<GLfloat> &vertexData)
                      GL_POINTS);
 }
 
-Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode) : drawMode(drawMode)
+Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode) : vertexData(vertexData), drawMode(drawMode)
 {
     this->LoadShaders(vertexShaderFileName, geometryShaderFileName, fragmentShaderFileName);
 
@@ -83,6 +83,15 @@ Model::~Model()
 {
     if (this->program != NULL)
         delete this->program;
+}
+
+void Model::SetVertexData(const std::vector<GLfloat> &vertexData)
+{
+    this->vertexData = vertexData;
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+    // Fill buffers with vertex data
+    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Model::LoadShaders(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName)

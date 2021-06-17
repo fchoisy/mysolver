@@ -7,24 +7,27 @@
 class Particle
 {
 private:
-    /* data */
+    // std::vector<const Particle *> neighbors;
+
 public:
     Particle(/* args */);
     ~Particle();
-    glm::vec2 position, velocity;
+    // const std::vector<const Particle *> &GetNeighbors();
+    glm::vec2 position, velocity, acceleration;
+    GLfloat density, pressure, mass;
 };
 
 class ParticleSet
 {
 private:
+    std::vector<GLfloat> vertexData;
     /* data */
 public:
-    ParticleSet(/* args */);
     ParticleSet(int xCount, int yCount, float particleSpacing);
     ~ParticleSet();
-    std::vector<GLfloat> *ToVertexData();
+    const std::vector<GLfloat> &ToVertexData();
     // std::vector<const Particle *> *FindNeighbors(Particle &particle);
     void PrintAllPositions();
     std::vector<Particle> particles;
-    GLfloat particleSpacing;
+    GLfloat particleSpacing, restDensity, stiffness, viscosity;
 };

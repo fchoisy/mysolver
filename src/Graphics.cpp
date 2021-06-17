@@ -25,7 +25,10 @@ void Graphics::OnError(int errorCode, const char *msg)
 
 void Graphics::Update()
 {
-    ;
+    if (glfwGetKey(gWindow, GLFW_KEY_SPACE))
+    {
+        _OnUpdate();
+    }
 }
 
 void Graphics::Render()
@@ -119,7 +122,6 @@ void Graphics::Run()
         // sleep until event
         glfwWaitEvents();
 
-        _OnUpdate();
         Update();
 
         // draw one frame
