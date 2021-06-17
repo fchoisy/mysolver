@@ -2,9 +2,9 @@
 #include <iostream>
 #include "Particles.hpp"
 
-Particle::Particle(/* args */)
-    : position(0.f, 0.f), velocity(0.f, 0.f), acceleration(0.f, 0.f),
-      density(1.f), pressure(1.f), mass(1.f)
+Particle::Particle(const glm::vec2 &position, const GLfloat &density, const GLfloat &mass)
+    : position(position), velocity(0.f, 0.f), acceleration(0.f, 0.f),
+      density(density), pressure(0.f), mass(mass)
 {
 }
 
@@ -12,18 +12,18 @@ Particle::~Particle()
 {
 }
 
-ParticleSet::ParticleSet(int xCount, int yCount, float spacing)
+ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
     : particles(), spacing(0.1f), vertexData(),
-      restDensity(1.f), stiffness(.8f), viscosity(.5f)
+      restDensity(1.f), stiffness(.8f), viscosity(.5f) // TODO experiment with these arbitrary values
 {
     for (size_t i = 0; i < xCount; i++)
     {
         for (size_t j = 0; j < yCount; j++)
         {
-            Particle part;
-            part.position = glm::vec2(i * spacing, j * spacing);
-            part.density = restDensity;
-            part.mass = restDensity * spacing * spacing;
+            Particle part(
+                glm::vec2(i * spacing, j * spacing),
+                restDensity,
+                restDensity * spacing * spacing);
             particles.push_back(part);
         }
     }

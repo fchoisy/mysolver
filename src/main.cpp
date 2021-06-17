@@ -8,6 +8,7 @@
 
 // standard C++ libraries
 #include <iostream>
+#include <fstream>
 #include <iomanip> // std::setw()
 #include <limits>
 
@@ -26,13 +27,15 @@
 Model *gModel = NULL;
 Graphics *gGraphics = NULL;
 
-ofstream gOutputFile;
+// std::ofstream gOutputFile;
 
 static const glm::vec2 gravity(0.f, -9.f);
-static const GLfloat timeStep = .1f;
 
 // Init particle set
 ParticleSet particleSet(10, 10, .1f);
+// ParticleSet particleSet(1, 1, .1f);
+
+static const GLfloat timeStep = .01f; // should respect the Courant-Friedrich-Levy condition
 
 std::vector<GLfloat> *KernelFunctionVertexData(const float &h)
 {
@@ -81,10 +84,10 @@ std::vector<GLfloat> *KernelDerivativeVertexData(const float &h)
 
 void MyOnInit()
 {
-    // gOutputFile.open("")
+    // gOutputFile.open("output.txt");
 
-    Model *axesModel = Model::Axes();
-    gGraphics->models.push_back(axesModel);
+    // Model *axesModel = Model::Axes();
+    // gGraphics->models.push_back(axesModel);
 
     // gModel = new Model(*particleSet.ToVertexData(),
     //                    ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
@@ -112,7 +115,7 @@ void MyOnInit()
 
 void MyOnUpdate()
 {
-    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.spacing + 1.e-05);
+    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.spacing - 1.e-05);
     for (size_t i = 0; i < particleSet.particles.size(); ++i)
     {
         Particle &particle = particleSet.particles[i];
@@ -157,7 +160,8 @@ void MyOnUpdate()
     for (size_t i = 0; i < particleSet.particles.size(); ++i)
     {
         Particle &particle = particleSet.particles[i];
-        std::cout << particle.position.x << " " << particle.position.y << std::endl;
+        // std::cout << particle.position.x << " " << particle.position.y << std::endl;
+        std::cout << particle.density << " " << particle.pressure << std::endl;
     }
     gModel->SetVertexData(particleSet.ToVertexData());
     std::cout << "Just updated" << std::endl;
@@ -165,6 +169,7 @@ void MyOnUpdate()
 
 void MyOnClose()
 {
+    // gOutputFile.close();
     if (gModel)
         delete gModel;
     std::cout << "Just closed" << std::endl;

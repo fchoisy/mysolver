@@ -33,7 +33,7 @@ void Graphics::Update()
 
 void Graphics::Render()
 {
-    glClearColor(0, 0, 0, 1);
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (std::vector<const Model *>::const_iterator it = this->models.begin(); it != this->models.end(); ++it)
