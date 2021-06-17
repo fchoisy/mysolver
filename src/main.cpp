@@ -60,7 +60,7 @@ std::vector<GLfloat> *KernelDerivativeVertexData(const float &h)
     for (uint i = 0; i < numSteps; i++)
     {
         float x = rangeStart + stepSize * i;
-        float y = KernelFunctionDerivative(origin, glm::vec2(x, 0.f), h).x * 10.f;
+        float y = KernelDerivative(origin, glm::vec2(x, 0.f), h).x * 10.f;
         kernelDerivativeGraph->push_back(x);
         kernelDerivativeGraph->push_back(y);
         kernelDerivativeGraph->push_back(1);
@@ -84,7 +84,7 @@ void MyOnInit()
     //     glm::vec2 kernelSum(0, 0);
     //     for (auto &&neighbor : *neighbors)
     //     {
-    //         kernelSum += KernelFunctionDerivative(it->position, neighbor->position, particleSet.particleSpacing);
+    //         kernelSum += KernelDerivative(it->position, neighbor->position, particleSet.particleSpacing);
     //     }
     //     std::cout << std::setw(6) << (glm::length(kernelSum) < .001f) << " ";
     //     if (((it - particleSet.particles.begin() + 1) % 10) == 0)
