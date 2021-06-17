@@ -4,8 +4,56 @@
 #include "Model.hpp"
 #include "helpers/RootDir.h"
 
-Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode)
-    : drawMode(drawMode)
+Model *Model::Axes()
+{
+    return new Model({
+                         -10.f,
+                         0.f,
+                         1,
+                         0,
+                         0,
+                         1,
+                         10.f,
+                         0.f,
+                         1,
+                         0,
+                         0,
+                         1,
+                         0.f,
+                         -10.f,
+                         0,
+                         1,
+                         0,
+                         1,
+                         0.f,
+                         10.f,
+                         0,
+                         1,
+                         0,
+                         1,
+                     },
+                     ROOT_DIR "resources/graph-shaders/vertex-shader.glsl", "", ROOT_DIR "resources/graph-shaders/fragment-shader.glsl", GL_LINES);
+}
+
+Model *Model::Graph(const std::vector<GLfloat> &vertexData)
+{
+    return new Model(vertexData,
+                     ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                     "",
+                     ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                     GL_LINE_STRIP);
+}
+
+Model *Model::ParticleVisualization(const std::vector<GLfloat> &vertexData)
+{
+    return new Model(vertexData,
+                     ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
+                     ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
+                     ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
+                     GL_POINTS);
+}
+
+Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode) : drawMode(drawMode)
 {
     this->LoadShaders(vertexShaderFileName, geometryShaderFileName, fragmentShaderFileName);
 
