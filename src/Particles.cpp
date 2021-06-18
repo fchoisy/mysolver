@@ -14,7 +14,7 @@ Particle::~Particle()
 
 ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
     : particles(), spacing(0.1f), vertexData(),
-      restDensity(1.f), stiffness(.8f), viscosity(.5f) // TODO experiment with these arbitrary values
+      restDensity(1.f), stiffness(.8f), viscosity(1e-6f) // TODO experiment with these arbitrary values
 {
     for (size_t i = 0; i < xCount; i++)
     {

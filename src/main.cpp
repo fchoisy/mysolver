@@ -23,6 +23,7 @@
 
 #include "Graphics.hpp"
 #include "Particles.hpp"
+#include "ParticleSimulation.hpp"
 #include "Model.hpp"
 #include "Algorithms.hpp"
 #include "helpers/RootDir.h"
@@ -30,14 +31,16 @@
 Model *gModel = NULL;
 Graphics *gGraphics = NULL;
 std::vector<GLfloat> gPosition;
+GLfloat currentTime = 0.f;
 
 // std::ofstream gOutputFile;
 
 static const glm::vec2 gravity(0.f, -9.f);
 
 // Init particle set
-// ParticleSet particleSet(10, 10, .1f);
-ParticleSet particleSet(1, 1, .1f);
+ParticleSet particleSet(10, 10, .1f);
+// ParticleSet particleSet(1, 1, .1f);
+ParticleSimulation particleSimulation;
 
 static const GLfloat timeStep = .01f; // should respect the Courant-Friedrich-Levy condition
 
@@ -93,25 +96,10 @@ void MyOnInit()
     // Model *axesModel = Model::Axes();
     // gGraphics->models.push_back(axesModel);
 
-    // gModel = new Model(*particleSet.ToVertexData(),
-    //                    ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
-    //                    ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
-    //                    ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
-    //                    GL_POINTS);
+    particleSimulation.AddParticleSet(particleSet);
+
     gModel = Model::ParticleVisualization(particleSet.ToVertexData());
     gGraphics->models.push_back(gModel);
-
-    // std::vector<GLfloat> *kernelFunctionGraph1 = KernelFunctionVertexData(1.f);
-    // Model *kernelModel1 = Model::Graph(*kernelFunctionGraph1);
-    // gGraphics->models.push_back(kernelModel1);
-
-    // std::vector<GLfloat> *kernelFunctionGraph2 = KernelFunctionVertexData(2.f);
-    // Model *kernelModel2 = Model::Graph(*kernelFunctionGraph2);
-    // gGraphics->models.push_back(kernelModel2);
-
-    // std::vector<GLfloat> *kernelFunctionGraph4 = KernelFunctionVertexData(4.f);
-    // Model *kernelModel4 = Model::Graph(*kernelFunctionGraph4);
-    // gGraphics->models.push_back(kernelModel4);
 
     // gGraphics->models.push_back(gModel);
     std::cout << "Just initialized" << std::endl;
@@ -119,12 +107,12 @@ void MyOnInit()
 
 void MyOnUpdate()
 {
-    std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.spacing - 1.e-05);
+    particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-05);
     for (size_t i = 0; i < particleSet.particles.size(); ++i)
     {
         Particle &particle = particleSet.particles[i];
         particle.density = 0.f;
-        for (auto &&neighbor : *((*allNeighbors)[i]))
+        for (auto &&neighbor : particleSimulation.GetNeighbors(particle))
         {
             particle.density += neighbor->mass * KernelFunction(particle.position, neighbor->position, particleSet.spacing);
         }
@@ -135,7 +123,7 @@ void MyOnUpdate()
     {
         Particle &particle = particleSet.particles[i];
         glm::vec2 viscosityAcceleration(0.f, 0.f);
-        for (auto &&neighbor : *((*allNeighbors)[i]))
+        for (auto &&neighbor : particleSimulation.GetNeighbors(particle))
         {
             glm::vec2 positionDiff = neighbor->position - particle.position;
             glm::vec2 velocityDiff = neighbor->velocity - particle.velocity;
@@ -145,7 +133,7 @@ void MyOnUpdate()
         viscosityAcceleration *= particleSet.viscosity;
 
         glm::vec2 pressureAcceleration(0.f, 0.f);
-        for (auto &&neighbor : *((*allNeighbors)[i]))
+        for (auto &&neighbor : particleSimulation.GetNeighbors(particle))
         {
             pressureAcceleration += neighbor->mass * (particle.pressure / (particle.density * particle.density) + neighbor->pressure / (neighbor->density * neighbor->density)) * KernelDerivative(particle.position, neighbor->position, particleSet.spacing);
         }
@@ -165,9 +153,11 @@ void MyOnUpdate()
     {
         Particle &particle = particleSet.particles[i];
         // std::cout << particle.position.x << " " << particle.position.y << std::endl;
-        std::cout << particle.density << " " << particle.pressure << std::endl;
+        // std::cout << particle.density << " " << particle.pressure << std::endl;
     }
     gModel->SetVertexData(particleSet.ToVertexData());
+
+    currentTime += timeStep;
 
     gPosition.push_back(particleSet.particles[0].position.y);
     std::cout << "Just updated" << std::endl;
@@ -175,12 +165,14 @@ void MyOnUpdate()
 
 void MyOnRender()
 {
-    ImGui::Begin("Demo window");
-    ImGui::Button("Hello!");
+    ImGui::Begin("Status");
+    ImGui::Text("t = %03f", currentTime);
 
-    // const float my_values[] = {0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f};
-    ImGui::PlotLines("Positions", gPosition.data(), sizeof(GLfloat) * gPosition.size());
+    // const GLfloat my_values[] = {0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f};
+    ImGui::PlotLines("Positions", gPosition.data(), gPosition.size());
+    // ImGui::PlotLines("Positions", gPosition.data(), sizeof(my_values));
     ImGui::End();
+    ;
 }
 
 void MyOnClose()

@@ -11,6 +11,7 @@
 // Tested files
 #include <Algorithms.hpp>
 #include <Particles.hpp>
+#include <ParticleSimulation.hpp>
 #include "test-algorithms.hpp"
 
 using namespace Catch;
@@ -20,16 +21,16 @@ static const float epsilon = std::numeric_limits<float>::epsilon() * 100;
 void RequireNeighborCountIsCorrect(const ParticleSet &particleSet)
 {
     // Find neighbors
-    // The search radius is increased slightly to avoid irregularities at the border
-    std::vector<std::vector<const Particle *> *> *allNeighborsSmall = FindAllNeighbors(particleSet, 2 * particleSet.spacing + 1.e-05);
+    ParticleSimulation particleSimulation;
+    particleSimulation.AddParticleSet(particleSet);
+    // The search radius is decreased slightly to avoid irregularities at the border
+    particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-5f);
     // Check number of neighbors
     std::vector<size_t> neighborsCount;
-    for (auto &&it = allNeighborsSmall->begin(); it != allNeighborsSmall->end(); ++it)
+    for (auto &&particle : particleSet.particles)
     {
-        neighborsCount.push_back((*it)->size());
-        delete *it;
+        neighborsCount.push_back(particleSimulation.GetNeighbors(particle).size());
     }
-    delete allNeighborsSmall;
     REQUIRE(neighborsCount == expectedNeighborsCount);
 }
 
@@ -115,16 +116,20 @@ TEST_CASE("Kernel function", "[kernel]")
 
         // Generate particle set
         ParticleSet particleSet(5, 5, h);
-        std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.spacing + 1e-6);
+        // Find neighbors
+        ParticleSimulation particleSimulation;
+        particleSimulation.AddParticleSet(particleSet);
+        // The search radius is decreased slightly to avoid irregularities at the border
+        particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-5f);
 
         std::cout << "Kernel function sum" << std::endl;
         // for (auto &&it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
         for (size_t i = 0; i < particleSet.particles.size(); ++i)
         {
             float kernelSum(0.f);
-            for (auto &&neighbor : *((*allNeighbors)[i]))
+            for (auto &&neighbor : particleSimulation.GetNeighbors(particleSet.particles.at(i)))
             {
-                kernelSum += KernelFunction(particleSet.particles[i].position, neighbor->position, particleSet.spacing);
+                kernelSum += KernelFunction(particleSet.particles.at(i).position, neighbor->position, particleSet.spacing);
             }
 
             bool is_top_or_bottom = (i < 5 || i > 19);
@@ -186,15 +191,19 @@ TEST_CASE("Kernel derivative", "[kernel]")
 
         // Generate particle set
         ParticleSet particleSet(5, 5, .1f);
-        std::vector<std::vector<const Particle *> *> *allNeighbors = FindAllNeighbors(particleSet, 2 * particleSet.spacing + 1e-6);
+        // Find neighbors
+        ParticleSimulation particleSimulation;
+        particleSimulation.AddParticleSet(particleSet);
+        // The search radius is decreased slightly to avoid irregularities at the border
+        particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-5f);
 
         std::cout << "Kernel derivative sum" << std::endl;
         for (size_t i = 0; i < particleSet.particles.size(); ++i)
         {
             glm::vec2 kernelSum(0.f, 0.f);
-            for (auto &&neighbor : *((*allNeighbors)[i]))
+            for (auto &&neighbor : particleSimulation.GetNeighbors(particleSet.particles.at(i)))
             {
-                kernelSum += KernelDerivative(particleSet.particles[i].position, neighbor->position, particleSet.spacing);
+                kernelSum += KernelDerivative(particleSet.particles.at(i).position, neighbor->position, particleSet.spacing);
             }
 
             bool is_top_or_bottom = (i < 5 || i > 19);
