@@ -18,7 +18,7 @@ using namespace Catch;
 
 static const float epsilon = std::numeric_limits<float>::epsilon() * 100;
 
-void RequireNeighborCountIsCorrect(const ParticleSet &particleSet)
+void RequireNeighborCountIsCorrect(ParticleSet &particleSet)
 {
     // Find neighbors
     ParticleSimulation particleSimulation;

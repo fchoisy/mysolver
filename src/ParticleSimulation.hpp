@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include <glm/vec2.hpp>
 // #include <functional>  // reference_wrapper
 
 #include "Particles.hpp"
@@ -9,12 +10,12 @@
 class ParticleSimulation
 {
 private:
-    std::vector<const ParticleSet *> particleSets;
+    std::vector<ParticleSet *> particleSets;
     std::map<const Particle *, std::vector<const Particle *>> neighbors;
 
 public:
-    // ParticleSimulation();
-    void AddParticleSet(const ParticleSet &particleSet);
+    void AddParticleSet(ParticleSet &particleSet);
     void UpdateNeighbors(float kernelSupport);
-    std::vector<const Particle *> &GetNeighbors(const Particle &particle);
+    const std::vector<const Particle *> &GetNeighbors(const Particle &particle) const;
+    void UpdateParticles(float timeStep, const glm::vec2 gravity) const;
 };

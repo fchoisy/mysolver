@@ -108,55 +108,9 @@ void MyOnInit()
 void MyOnUpdate()
 {
     particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-05);
-    for (size_t i = 0; i < particleSet.particles.size(); ++i)
-    {
-        Particle &particle = particleSet.particles[i];
-        particle.density = 0.f;
-        for (auto &&neighbor : particleSimulation.GetNeighbors(particle))
-        {
-            particle.density += neighbor->mass * KernelFunction(particle.position, neighbor->position, particleSet.spacing);
-        }
-        particle.pressure = glm::max(particleSet.stiffness * (particle.density / particleSet.restDensity - 1.f), 0.f);
-    }
+    particleSimulation.UpdateParticles(timeStep, gravity);
 
-    for (size_t i = 0; i < particleSet.particles.size(); ++i)
-    {
-        Particle &particle = particleSet.particles[i];
-        glm::vec2 viscosityAcceleration(0.f, 0.f);
-        for (auto &&neighbor : particleSimulation.GetNeighbors(particle))
-        {
-            glm::vec2 positionDiff = neighbor->position - particle.position;
-            glm::vec2 velocityDiff = neighbor->velocity - particle.velocity;
-            viscosityAcceleration += (neighbor->mass / neighbor->density) * (velocityDiff * positionDiff) / (glm::dot(positionDiff, positionDiff) + 0.01f * particleSet.spacing * particleSet.spacing) * KernelDerivative(particle.position, neighbor->position, particleSet.spacing);
-        }
-        viscosityAcceleration *= 2.f; // dimensionality
-        viscosityAcceleration *= particleSet.viscosity;
-
-        glm::vec2 pressureAcceleration(0.f, 0.f);
-        for (auto &&neighbor : particleSimulation.GetNeighbors(particle))
-        {
-            pressureAcceleration += neighbor->mass * (particle.pressure / (particle.density * particle.density) + neighbor->pressure / (neighbor->density * neighbor->density)) * KernelDerivative(particle.position, neighbor->position, particleSet.spacing);
-        }
-        pressureAcceleration *= -1.f;
-
-        particle.acceleration = viscosityAcceleration + gravity + pressureAcceleration;
-    }
-
-    for (size_t i = 0; i < particleSet.particles.size(); ++i)
-    {
-        Particle &particle = particleSet.particles[i];
-        particle.velocity += timeStep * particle.acceleration;
-        particle.position += timeStep * particle.velocity;
-    }
-
-    for (size_t i = 0; i < particleSet.particles.size(); ++i)
-    {
-        Particle &particle = particleSet.particles[i];
-        // std::cout << particle.position.x << " " << particle.position.y << std::endl;
-        // std::cout << particle.density << " " << particle.pressure << std::endl;
-    }
     gModel->SetVertexData(particleSet.ToVertexData());
-
     currentTime += timeStep;
 
     gPosition.push_back(particleSet.particles[0].position.y);
