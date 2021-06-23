@@ -22,16 +22,18 @@ TEST_CASE("Kernel function", "[kernel]")
     const float frac = 1.f / (14.f * glm::pi<float>() * h * h);
     const float t = glm::pow((2.f - glm::sqrt(2.f)), 3.f);
 
+    Kernel kernel(h);
+
     SECTION("for distance = 0, h and h * sqrt(2)")
     {
         const glm::vec2 reference(2.f, 7.f);
-        REQUIRE(Approx(20.f * frac) == KernelFunction(reference, reference, h));
-        REQUIRE(Approx(5.f * frac) == KernelFunction(reference, reference + glm::vec2(h, 0.f), h));
-        REQUIRE(Approx(5 * t * frac) == KernelFunction(reference, reference + glm::vec2(h, h), h));
+        REQUIRE(Approx(20.f * frac) == kernel.Function(reference, reference));
+        REQUIRE(Approx(5.f * frac) == kernel.Function(reference, reference + glm::vec2(h, 0.f)));
+        REQUIRE(Approx(5 * t * frac) == kernel.Function(reference, reference + glm::vec2(h, h)));
         std::cout << "Kernel function special values" << std::endl;
-        std::cout << "\tW(0) = " << KernelFunction(reference, reference, h) << std::endl;
-        std::cout << "\tW(0.1) = " << KernelFunction(reference, reference + glm::vec2(h, 0.f), h) << std::endl;
-        std::cout << "\tW(0.1 * sqrt(2)) = " << KernelFunction(reference, reference + glm::vec2(h, h), h) << std::endl;
+        std::cout << "\tW(0) = " << kernel.Function(reference, reference) << std::endl;
+        std::cout << "\tW(0.1) = " << kernel.Function(reference, reference + glm::vec2(h, 0.f)) << std::endl;
+        std::cout << "\tW(0.1 * sqrt(2)) = " << kernel.Function(reference, reference + glm::vec2(h, h)) << std::endl;
     }
 
     SECTION("sum for particles in a 5x5 grid using neighbor search")
@@ -48,6 +50,8 @@ TEST_CASE("Kernel function", "[kernel]")
         // The search radius is decreased slightly to avoid irregularities at the border
         particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-5f);
 
+        Kernel kernel(h);
+
         std::cout << "Kernel function sum" << std::endl;
         // for (auto &&it = particleSet.particles.begin(); it != particleSet.particles.end(); ++it)
         for (size_t i = 0; i < particleSet.particles.size(); ++i)
@@ -55,7 +59,7 @@ TEST_CASE("Kernel function", "[kernel]")
             float kernelSum(0.f);
             for (auto &&neighbor : particleSimulation.GetNeighbors(particleSet.particles.at(i)))
             {
-                kernelSum += KernelFunction(particleSet.particles.at(i).position, neighbor->position, particleSet.spacing);
+                kernelSum += kernel.Function(particleSet.particles.at(i).position, neighbor->position);
             }
 
             bool is_top_or_bottom = (i < 5 || i > 19);
@@ -88,25 +92,27 @@ TEST_CASE("Kernel derivative", "[kernel]")
     const float h = .1f;
     const float alpha = 5.f / (14.f * glm::pi<float>() * h * h);
 
+    Kernel kernel(h);
+
     SECTION("for relative positions in a 3x3 grid")
     {
         glm::vec2 result(0.f, 0.f);
         // Approximate == 0
-        result = KernelDerivative(glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), h);
+        result = kernel.Derivative(glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f));
         REQUIRE(result.x < epsilon);
         REQUIRE(result.y < epsilon);
-        result = KernelDerivative(glm::vec2(0.f, 0.f), glm::vec2(h, 0.f), h);
+        result = kernel.Derivative(glm::vec2(0.f, 0.f), glm::vec2(h, 0.f));
         REQUIRE(Approx(3.f * alpha / h) == result.x);
         REQUIRE(result.y < epsilon);
-        result = KernelDerivative(glm::vec2(0.f, 0.f), glm::vec2(0.f, h), h);
+        result = kernel.Derivative(glm::vec2(0.f, 0.f), glm::vec2(0.f, h));
         REQUIRE(result.x < epsilon);
         REQUIRE(Approx(3.f * alpha / h) == result.y);
         const float beta = -3.f * glm::pow((2.f - glm::sqrt(2.f)), 2.f);
         const float expected = alpha * beta / (h * glm::sqrt(2.f));
-        result = KernelDerivative(glm::vec2(0.f, 0.f), glm::vec2(h, h), h);
+        result = kernel.Derivative(glm::vec2(0.f, 0.f), glm::vec2(h, h));
         REQUIRE(Approx(-expected) == result.x);
         REQUIRE(Approx(-expected) == result.y);
-        result = KernelDerivative(glm::vec2(0.f, 0.f), glm::vec2(h, -h), h);
+        result = kernel.Derivative(glm::vec2(0.f, 0.f), glm::vec2(h, -h));
         REQUIRE(Approx(-expected) == result.x);
         REQUIRE(Approx(expected) == result.y);
     }
@@ -123,13 +129,15 @@ TEST_CASE("Kernel derivative", "[kernel]")
         // The search radius is decreased slightly to avoid irregularities at the border
         particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-5f);
 
+        Kernel kernel(h);
+
         std::cout << "Kernel derivative sum" << std::endl;
         for (size_t i = 0; i < particleSet.particles.size(); ++i)
         {
             glm::vec2 kernelSum(0.f, 0.f);
             for (auto &&neighbor : particleSimulation.GetNeighbors(particleSet.particles.at(i)))
             {
-                kernelSum += KernelDerivative(particleSet.particles.at(i).position, neighbor->position, particleSet.spacing);
+                kernelSum += kernel.Derivative(particleSet.particles.at(i).position, neighbor->position);
             }
 
             bool is_top_or_bottom = (i < 5 || i > 19);

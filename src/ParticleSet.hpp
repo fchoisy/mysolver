@@ -20,4 +20,5 @@ public:
     void PrintAllPositions();
     std::vector<Particle> particles;
     GLfloat spacing, restDensity, stiffness, viscosity;
+    bool isStatic;
 };

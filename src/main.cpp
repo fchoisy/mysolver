@@ -42,50 +42,7 @@ ParticleSimulation particleSimulation;
 
 static const GLfloat timeStep = .01f; // should respect the Courant-Friedrich-Levy condition
 
-std::vector<GLfloat> *KernelFunctionVertexData(const float &h)
-{
-    std::vector<GLfloat> *kernelFunctionGraph = new std::vector<GLfloat>;
-    glm::vec2 origin(0, 0);
-    const uint numSteps = 100;
-    const float rangeStart = -8.f;
-    const float rangeStop = 8.f;
-    const float stepSize = (rangeStop - rangeStart) / numSteps;
-    for (uint i = 0; i < numSteps; i++)
-    {
-        float x = rangeStart + stepSize * i;
-        float y = KernelFunction(origin, glm::vec2(x, 0.f), h) * 10.f;
-        // std::cout << y << std::endl;
-        kernelFunctionGraph->push_back(x);
-        kernelFunctionGraph->push_back(y);
-        kernelFunctionGraph->push_back(1);
-        kernelFunctionGraph->push_back(1);
-        kernelFunctionGraph->push_back(1);
-        kernelFunctionGraph->push_back(1);
-    }
-    return kernelFunctionGraph;
-}
-
-std::vector<GLfloat> *KernelDerivativeVertexData(const float &h)
-{
-    std::vector<GLfloat> *kernelDerivativeGraph = new std::vector<GLfloat>;
-    glm::vec2 origin(0, 0);
-    const uint numSteps = 100;
-    const float rangeStart = -8.f;
-    const float rangeStop = 8.f;
-    const float stepSize = (rangeStop - rangeStart) / numSteps;
-    for (uint i = 0; i < numSteps; i++)
-    {
-        float x = rangeStart + stepSize * i;
-        float y = KernelDerivative(origin, glm::vec2(x, 0.f), h).x * 10.f;
-        kernelDerivativeGraph->push_back(x);
-        kernelDerivativeGraph->push_back(y);
-        kernelDerivativeGraph->push_back(1);
-        kernelDerivativeGraph->push_back(1);
-        kernelDerivativeGraph->push_back(1);
-        kernelDerivativeGraph->push_back(1);
-    }
-    return kernelDerivativeGraph;
-}
+Kernel kernel(particleSet.spacing);
 
 void MyOnInit()
 {

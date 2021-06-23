@@ -21,13 +21,15 @@ void ParticleSet::InitGrid(int xCount, int yCount, GLfloat spacing)
 
 ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
     : particles(), vertexData(), spacing(spacing),
-      restDensity(1.2f), stiffness(.5f), viscosity(12.f)
+      restDensity(1.2f), stiffness(.5f), viscosity(12.f),
+      isStatic(false)
 {
     InitGrid(xCount, yCount, spacing);
 }
 ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing, GLfloat restDensity, GLfloat stiffness, GLfloat viscosity)
     : particles(), vertexData(), spacing(spacing),
-      restDensity(restDensity), stiffness(stiffness), viscosity(viscosity)
+      restDensity(restDensity), stiffness(stiffness), viscosity(viscosity),
+      isStatic(false)
 {
     InitGrid(xCount, yCount, spacing);
 }

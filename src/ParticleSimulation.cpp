@@ -40,13 +40,14 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
     {
         if (!particleSet->isStatic)
         {
+            Kernel kernel(particleSet->spacing);
             // Compute density and pressure for each particle
             for (auto &&particle : particleSet->particles)
             {
                 particle.density = 0.f;
                 for (auto &&neighbor : GetNeighbors(particle))
                 {
-                    particle.density += neighbor->mass * KernelFunction(particle.position, neighbor->position, particleSet->spacing);
+                    particle.density += neighbor->mass * kernel.Function(particle.position, neighbor->position);
                 }
                 particle.pressure = glm::max(particleSet->stiffness * (particle.density / particleSet->restDensity - 1.f), 0.f);
             }
@@ -59,7 +60,7 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 {
                     glm::vec2 positionDiff = neighbor->position - particle.position;
                     glm::vec2 velocityDiff = neighbor->velocity - particle.velocity;
-                    glm::vec2 kernelDer = KernelDerivative(particle.position, neighbor->position, particleSet->spacing);
+                    glm::vec2 kernelDer = kernel.Derivative(particle.position, neighbor->position);
                     viscosityAcceleration +=
                         kernelDer *
                         (neighbor->mass / neighbor->density) *
@@ -72,7 +73,7 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 glm::vec2 pressureAcceleration(0.f, 0.f);
                 for (auto &&neighbor : GetNeighbors(particle))
                 {
-                    pressureAcceleration += neighbor->mass * (particle.pressure / (particle.density * particle.density) + neighbor->pressure / (neighbor->density * neighbor->density)) * KernelDerivative(particle.position, neighbor->position, particleSet->spacing);
+                    pressureAcceleration += neighbor->mass * (particle.pressure / (particle.density * particle.density) + neighbor->pressure / (neighbor->density * neighbor->density)) * kernel.Derivative(particle.position, neighbor->position);
                 }
                 pressureAcceleration *= -1.f;
                 // Other accelerations
