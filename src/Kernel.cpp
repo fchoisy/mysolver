@@ -1,4 +1,5 @@
-#include "Algorithms.hpp"
+#include "Kernel.hpp"
+
 #include <glm/vec2.hpp>
 #include <glm/common.hpp>
 #include <glm/geometric.hpp>

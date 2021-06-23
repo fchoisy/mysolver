@@ -1,7 +1,7 @@
 #include "ParticleSimulation.hpp"
 
 #include <glm/geometric.hpp>
-#include "Algorithms.hpp"
+#include "Kernel.hpp"
 
 void ParticleSimulation::AddParticleSet(ParticleSet &particleSet)
 {
@@ -57,7 +57,7 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 glm::vec2 velocityDiff = neighbor->velocity - particle.velocity;
                 viscosityAcceleration += (neighbor->mass / neighbor->density) * (velocityDiff * positionDiff) / (glm::dot(positionDiff, positionDiff) + 0.01f * particleSet->spacing * particleSet->spacing) * KernelDerivative(particle.position, neighbor->position, particleSet->spacing);
             }
-            viscosityAcceleration *= 2.f; // dimensionality
+            viscosityAcceleration *= 2.f; // dimensionality (2D)
             viscosityAcceleration *= particleSet->viscosity;
 
             glm::vec2 pressureAcceleration(0.f, 0.f);
@@ -74,12 +74,6 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
         {
             particle.velocity += timeStep * particle.acceleration;
             particle.position += timeStep * particle.velocity;
-        }
-
-        for (auto &&particle : particleSet->particles)
-        {
-            // std::cout << particle.position.x << " " << particle.position.y << std::endl;
-            // std::cout << particle.density << " " << particle.pressure << std::endl;
         }
     }
 }

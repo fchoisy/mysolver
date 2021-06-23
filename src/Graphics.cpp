@@ -11,7 +11,6 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "Graphics.hpp"
-#include "Particles.hpp"
 
 Graphics::Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnRender)(), void (*OnClose)())
     : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnRender(OnRender), _OnClose(OnClose), SCREEN_SIZE(800, 600), internalState{.5f}

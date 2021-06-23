@@ -1,21 +1,11 @@
 
 #include <iostream>
-#include "Particles.hpp"
+#include "ParticleSet.hpp"
 
-Particle::Particle(const glm::vec2 &position, const GLfloat &density, const GLfloat &mass)
-    : position(position), velocity(0.f, 0.f), acceleration(0.f, 0.f),
-      density(density), pressure(0.f), mass(mass)
+void ParticleSet::InitGrid(int xCount, int yCount, GLfloat spacing)
 {
-}
-
-Particle::~Particle()
-{
-}
-
-ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
-    : particles(), spacing(0.1f), vertexData(),
-      restDensity(1.f), stiffness(.8f), viscosity(1e-6f) // TODO experiment with these arbitrary values
-{
+    particles.clear();
+    particles.reserve(xCount * yCount);
     for (size_t i = 0; i < xCount; i++)
     {
         for (size_t j = 0; j < yCount; j++)
@@ -27,6 +17,19 @@ ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
             particles.push_back(part);
         }
     }
+}
+
+ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
+    : particles(), vertexData(), spacing(spacing),
+      restDensity(1.2f), stiffness(.5f), viscosity(12.f)
+{
+    InitGrid(xCount, yCount, spacing);
+}
+ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing, GLfloat restDensity, GLfloat stiffness, GLfloat viscosity)
+    : particles(), vertexData(), spacing(spacing),
+      restDensity(restDensity), stiffness(stiffness), viscosity(viscosity)
+{
+    InitGrid(xCount, yCount, spacing);
 }
 
 ParticleSet::~ParticleSet()

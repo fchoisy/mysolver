@@ -1,14 +1,14 @@
 /**
  * main
  * 
- * Tom Dalling's OpenGL tutorial (http://tomdalling.com/) chapter 1 was taken as starting point for this file.
+ * Entry point to the program.
+ * Contains the callbacks that are called by the GUI.
  */
 
 // third-party libraries
 
 // standard C++ libraries
 #include <iostream>
-#include <fstream>
 #include <iomanip> // std::setw()
 #include <limits>
 #include <vector>
@@ -22,10 +22,10 @@
 #include "imgui/imgui.h"
 
 #include "Graphics.hpp"
-#include "Particles.hpp"
+#include "ParticleSet.hpp"
 #include "ParticleSimulation.hpp"
 #include "Model.hpp"
-#include "Algorithms.hpp"
+#include "Kernel.hpp"
 #include "helpers/RootDir.h"
 
 Model *gModel = NULL;
@@ -33,12 +33,10 @@ Graphics *gGraphics = NULL;
 std::vector<GLfloat> gPosition;
 GLfloat currentTime = 0.f;
 
-// std::ofstream gOutputFile;
-
 static const glm::vec2 gravity(0.f, -9.f);
 
 // Init particle set
-ParticleSet particleSet(10, 10, .1f);
+ParticleSet particleSet(10, 10, .1f, 1.2f, .3f, .8f);
 // ParticleSet particleSet(1, 1, .1f);
 ParticleSimulation particleSimulation;
 
@@ -91,7 +89,6 @@ std::vector<GLfloat> *KernelDerivativeVertexData(const float &h)
 
 void MyOnInit()
 {
-    // gOutputFile.open("output.txt");
 
     // Model *axesModel = Model::Axes();
     // gGraphics->models.push_back(axesModel);
@@ -131,7 +128,6 @@ void MyOnRender()
 
 void MyOnClose()
 {
-    // gOutputFile.close();
     if (gModel)
         delete gModel;
     std::cout << "Just closed" << std::endl;

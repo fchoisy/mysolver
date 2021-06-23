@@ -5,7 +5,8 @@
 #include <glm/vec2.hpp>
 // #include <functional>  // reference_wrapper
 
-#include "Particles.hpp"
+#include "Particle.hpp"
+#include "ParticleSet.hpp"
 
 class ParticleSimulation
 {
