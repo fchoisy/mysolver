@@ -3,6 +3,7 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include "Model.hpp"
+#include "Experiment.hpp"
 
 struct InternalState
 {
@@ -14,16 +15,13 @@ struct InternalState
 class Graphics
 {
 private:
-    void (*_OnInit)();
-    void (*_OnUpdate)();
-    void (*_OnRender)();
-    void (*_OnClose)();
+    Experiment &experiment;
     const glm::vec2 SCREEN_SIZE;
     GLFWwindow *gWindow;
     InternalState internalState;
 
 public:
-    Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnRender)(), void (*OnClose)());
+    Graphics(Experiment &experiment);
     ~Graphics();
     static void OnError(int errorCode, const char *msg);
     void Update();

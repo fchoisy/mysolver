@@ -38,6 +38,15 @@ ParticleSet::~ParticleSet()
 {
 }
 
+void ParticleSet::TranslateAll(GLfloat offsetX, GLfloat offsetY)
+{
+    for (auto &&particle : particles)
+    {
+        particle.position.x += offsetX;
+        particle.position.y += offsetY;
+    }
+}
+
 const std::vector<GLfloat> &ParticleSet::ToVertexData()
 {
     vertexData.clear();
@@ -47,8 +56,9 @@ const std::vector<GLfloat> &ParticleSet::ToVertexData()
         vertexData.push_back(it->position.x);
         vertexData.push_back(it->position.y);
         // Color
-        vertexData.push_back(it->position.x);
-        vertexData.push_back(it->position.y);
+        vertexData.push_back(it->pressure / 1000.f);
+        vertexData.push_back(0.f);
+        // vertexData.push_back(it->position.y);
         vertexData.push_back(0.f);
         vertexData.push_back(1.f);
     }

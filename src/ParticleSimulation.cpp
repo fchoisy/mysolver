@@ -3,6 +3,8 @@
 #include <glm/geometric.hpp>
 #include "Kernel.hpp"
 
+#include <iostream> // DEBUG
+
 void ParticleSimulation::AddParticleSet(ParticleSet &particleSet)
 {
     particleSets.push_back(&particleSet);
@@ -38,19 +40,19 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
 {
     for (auto &&particleSet : particleSets)
     {
+        Kernel kernel(particleSet->spacing);
+        // Compute density and pressure for each particle
+        for (auto &&particle : particleSet->particles)
+        {
+            particle.density = 0.f;
+            for (auto &&neighbor : GetNeighbors(particle))
+            {
+                particle.density += neighbor->mass * kernel.Function(particle.position, neighbor->position);
+            }
+            particle.pressure = glm::max(particleSet->stiffness * (particle.density / particleSet->restDensity - 1.f), 0.f);
+        }
         if (!particleSet->isStatic)
         {
-            Kernel kernel(particleSet->spacing);
-            // Compute density and pressure for each particle
-            for (auto &&particle : particleSet->particles)
-            {
-                particle.density = 0.f;
-                for (auto &&neighbor : GetNeighbors(particle))
-                {
-                    particle.density += neighbor->mass * kernel.Function(particle.position, neighbor->position);
-                }
-                particle.pressure = glm::max(particleSet->stiffness * (particle.density / particleSet->restDensity - 1.f), 0.f);
-            }
             // Compute accelerations for each particle
             for (auto &&particle : particleSet->particles)
             {

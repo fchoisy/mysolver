@@ -12,8 +12,8 @@
 
 #include "Graphics.hpp"
 
-Graphics::Graphics(void (*OnInit)(), void (*OnUpdate)(), void (*OnRender)(), void (*OnClose)())
-    : _OnInit(OnInit), _OnUpdate(OnUpdate), _OnRender(OnRender), _OnClose(OnClose), SCREEN_SIZE(800, 600), internalState{.5f}
+Graphics::Graphics(Experiment &experiment)
+    : experiment(experiment), SCREEN_SIZE(800, 600), internalState{.5f}
 {
 }
 
@@ -30,7 +30,7 @@ void Graphics::Update()
 {
     if (glfwGetKey(gWindow, GLFW_KEY_SPACE))
     {
-        _OnUpdate();
+        experiment.OnUpdate();
     }
 }
 
@@ -39,23 +39,23 @@ void Graphics::Render()
     glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (std::vector<const Model *>::const_iterator it = this->models.begin(); it != this->models.end(); ++it)
+    for (auto &&model : models)
     {
-        (*it)->program->use();
-        glBindVertexArray((*it)->vao);
+        model->program->use();
+        glBindVertexArray(model->vao);
         GLfloat aspect = 800.f / 600.f;
         glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
-        (*it)->program->setUniform("projection", projection);
+        model->program->setUniform("projection", projection);
 
         glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.2f, -.2f, 0.f)), glm::vec3(internalState.zoomLevel, internalState.zoomLevel, internalState.zoomLevel));
-        (*it)->program->setUniform("camera", camera);
+        model->program->setUniform("camera", camera);
 
-        glDrawArrays((*it)->drawMode, 0, (*it)->drawCount);
+        glDrawArrays(model->drawMode, 0, model->drawCount);
         glBindVertexArray(0);
-        (*it)->program->stopUsing();
+        model->program->stopUsing();
     }
 
-    _OnRender();
+    experiment.OnRender();
     // // render GUI
     // ImGui::Begin("Demo window");
     // ImGui::Button("Hello!");
@@ -128,7 +128,7 @@ void Graphics::Run()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    _OnInit();
+    experiment.OnInit();
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -166,7 +166,7 @@ void Graphics::Run()
             glfwSetWindowShouldClose(gWindow, GL_TRUE);
         }
     }
-    _OnClose();
+    experiment.OnClose();
 
     // clean up and exit
     ImGui_ImplOpenGL3_Shutdown();
