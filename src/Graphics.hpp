@@ -10,8 +10,10 @@ struct InternalState
     float zoomLevel;
     bool isPaused;
     bool shouldUpdateOneStep;
-    // float cameraX;
-    // float cameraY;
+    bool lButtonDown;
+    glm::vec3 cameraOffset;
+    double oldX;
+    double oldY;
 };
 
 class Graphics
@@ -22,8 +24,10 @@ private:
     GLFWwindow *gWindow;
     InternalState internalState;
     static void OnError(int errorCode, const char *msg);
-    static void OnScroll(GLFWwindow *window, double xoffset, double yoffset);
     static void OnKey(GLFWwindow *window, int key, int scancode, int action, int mods);
+    static void OnMouseButton(GLFWwindow *window, int button, int action, int mods);
+    static void OnCursorPos(GLFWwindow *window, double newX, double newY);
+    static void OnScroll(GLFWwindow *window, double xoffset, double yoffset);
 
 public:
     Graphics(Experiment &experiment);

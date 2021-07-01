@@ -14,7 +14,7 @@
 #include "Graphics.hpp"
 
 Graphics::Graphics(Experiment &experiment)
-    : experiment(experiment), SCREEN_SIZE(1200, 800), internalState{.5f, true, false}
+    : experiment(experiment), SCREEN_SIZE(1200, 800), internalState{.5f, true, false, false, glm::vec3(-.2f, -.2f, 0.f), 0, 0}
 {
 }
 
@@ -40,6 +40,44 @@ void Graphics::OnKey(GLFWwindow *window, int key, int scancode, int action, int 
         else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
         {
             internalState->shouldUpdateOneStep = true;
+        }
+    }
+}
+
+void Graphics::OnMouseButton(GLFWwindow *window, int button, int action, int mods)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureMouse)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        if (button == GLFW_MOUSE_BUTTON_LEFT)
+        {
+            if (GLFW_PRESS == action)
+            {
+                internalState->lButtonDown = true;
+                glfwGetCursorPos(window, &internalState->oldX, &internalState->oldY);
+            }
+            else if (GLFW_RELEASE == action)
+            {
+                internalState->lButtonDown = false;
+            }
+        }
+    }
+}
+
+void Graphics::OnCursorPos(GLFWwindow *window, double newX, double newY)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureMouse)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        static const double movementFactor = 0.01;
+        if (internalState->lButtonDown)
+        {
+            internalState->cameraOffset.x += movementFactor * (newX - internalState->oldX);
+            internalState->cameraOffset.y -= movementFactor * (newY - internalState->oldY);
+            internalState->oldX = newX;
+            internalState->oldY = newY;
         }
     }
 }
@@ -76,7 +114,9 @@ void Graphics::Render()
         glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
         model->program->setUniform("projection", projection);
 
-        glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.2f, -.2f, 0.f)), glm::vec3(internalState.zoomLevel, internalState.zoomLevel, internalState.zoomLevel));
+        glm::mat4 camera = glm::translate(glm::mat4(1.0f), glm::vec3(-.2f, -.2f, 0.f));
+        camera = glm::scale(camera, glm::vec3(internalState.zoomLevel, internalState.zoomLevel, internalState.zoomLevel));
+        camera = glm::translate(camera, internalState.cameraOffset);
         model->program->setUniform("camera", camera);
 
         glDrawArrays(model->drawMode, 0, model->drawCount);
@@ -85,10 +125,6 @@ void Graphics::Render()
     }
 
     experiment.OnRender();
-    // // render GUI
-    // ImGui::Begin("Demo window");
-    // ImGui::Button("Hello!");
-    // ImGui::End();
 
     // Render dear imgui into screen
     ImGui::Render();
@@ -117,8 +153,10 @@ void Graphics::Run()
     // GLFW settings
     glfwMakeContextCurrent(gWindow);
     glfwSetWindowUserPointer(gWindow, &(this->internalState));
-    glfwSetScrollCallback(gWindow, Graphics::OnScroll);
     glfwSetKeyCallback(gWindow, Graphics::OnKey);
+    glfwSetMouseButtonCallback(gWindow, Graphics::OnMouseButton);
+    glfwSetCursorPosCallback(gWindow, Graphics::OnCursorPos);
+    glfwSetScrollCallback(gWindow, Graphics::OnScroll);
 
     // initialise GLEW
     glewExperimental = GL_TRUE; //stops glew crashing on OSX :-/
