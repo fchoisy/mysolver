@@ -54,12 +54,16 @@ private:
 public:
     BoundaryExperiment()
         : gravity(0.f, -9.f),
-          particleSet(10, 10, .1f, 3e3f, 3000.f, 1e-7f),
-          boundary(40, 3, .1f, 3e3f, 3000.f, 1e-7f),
+          particleSet(10, 10, .1f, 3e3f, 3e5f, 1e-7f),
+          boundary(70, 3, .1f, 3e3f, 3000.f, 1e-7f),
           timeStep(.01f),
           kernel(particleSet.spacing),
           gGraphics(*this)
     {
+        particleSimulation.AddParticleSet(particleSet);
+        boundary.isStatic = true;
+        boundary.TranslateAll(-2.f, -.4f);
+        particleSimulation.AddParticleSet(boundary);
         gGraphics.Run();
     }
 
@@ -76,11 +80,6 @@ public:
 
         // Model *axesModel = Model::Axes();
         // gGraphics->models.push_back(axesModel);
-
-        particleSimulation.AddParticleSet(particleSet);
-        boundary.isStatic = true;
-        boundary.TranslateAll(-.5f, -.4f);
-        particleSimulation.AddParticleSet(boundary);
 
         gModel = Model::ParticleVisualization(particleSet.ToVertexData());
         gGraphics.models.push_back(gModel);
@@ -111,8 +110,26 @@ public:
         ImGui::Text("t = %03f", currentTime);
 
         // const GLfloat my_values[] = {0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f};
-        ImGui::PlotLines("Positions", gPosition.data(), gPosition.size());
+        // ImGui::PlotLines("Positions", gPosition.data(), gPosition.size());
         // ImGui::PlotLines("Positions", gPosition.data(), sizeof(my_values));
+
+        if (ImGui::TreeNode("Reset simulation"))
+        {
+
+            static float newStiffness = particleSet.stiffness;
+            ImGui::InputFloat("Stiffness", &newStiffness, 0.0F, 0.0F, "%e");
+            static float newRestDensity = particleSet.restDensity;
+            ImGui::InputFloat("Rest density", &newRestDensity, 0.0F, 0.0F, "%e");
+            static float newViscosity = particleSet.viscosity;
+            ImGui::InputFloat("Viscosity", &newViscosity, 0.0F, 0.0F, "%e");
+
+            if (ImGui::Button("Reset"))
+            {
+                particleSet = ParticleSet(10, 10, .1f, newRestDensity, newStiffness, newViscosity);
+            }
+            ImGui::TreePop();
+        }
+        // ImGui::ShowDemoWindow();
         ImGui::End();
         ;
     }
