@@ -20,6 +20,7 @@
 #include <tdogl/Program.h>
 
 #include "imgui/imgui.h"
+#include "imgui/implot.h"
 
 #include "Experiment.hpp"
 #include "Graphics.hpp"
@@ -54,8 +55,8 @@ private:
 public:
     BoundaryExperiment()
         : gravity(0.f, -9.f),
-          particleSet(10, 10, .1f, 3e3f, 3e5f, 1e-7f),
-          boundary(70, 3, .1f, 3e3f, 3000.f, 1e-7f),
+          particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f),
+          boundary(30, 3, .1f, 3e3f, 3000.f, 1e-7f),
           timeStep(.01f),
           kernel(particleSet.spacing),
           gGraphics(*this)
@@ -87,21 +88,20 @@ public:
         gGraphics.models.push_back(gModelBoundary);
 
         // gGraphics.models.push_back(gModel);
-        std::cout << "Just initialized" << std::endl;
+        // std::cout << "Just initialized" << std::endl;
     }
 
     void OnUpdate()
     {
         particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-05);
         particleSimulation.UpdateParticles(timeStep, gravity);
-        std::cout << particleSet.particles.at(15).pressure << "\t" << particleSet.particles.at(0).acceleration.y << std::endl;
 
         gModel->SetVertexData(particleSet.ToVertexData());
         gModelBoundary->SetVertexData(boundary.ToVertexData());
         currentTime += timeStep;
 
         gPosition.push_back(particleSet.particles[0].position.y);
-        std::cout << "Just updated" << std::endl;
+        // std::cout << "Just updated" << std::endl;
     }
 
     void OnRender()
@@ -116,27 +116,37 @@ public:
         if (ImGui::TreeNode("Reset simulation"))
         {
 
+            // static int newNoParticlesX = 10;
+            // ImGui::SliderInt("Number of particles in the x direction", &newNoParticlesX, 1, 100);
+
+            // static int newNoParticlesY = 10;
+            // ImGui::SliderInt("Number of particles in the y direction", &newNoParticlesY, 1, 100);
+
             static float newStiffness = particleSet.stiffness;
             ImGui::InputFloat("Stiffness", &newStiffness, 0.0F, 0.0F, "%e");
+
             static float newRestDensity = particleSet.restDensity;
             ImGui::InputFloat("Rest density", &newRestDensity, 0.0F, 0.0F, "%e");
+
             static float newViscosity = particleSet.viscosity;
             ImGui::InputFloat("Viscosity", &newViscosity, 0.0F, 0.0F, "%e");
 
             if (ImGui::Button("Reset"))
             {
+                // particleSet = ParticleSet(newNoParticlesX, newNoParticlesY, .1f, newRestDensity, newStiffness, newViscosity);
                 particleSet = ParticleSet(10, 10, .1f, newRestDensity, newStiffness, newViscosity);
             }
             ImGui::TreePop();
         }
         // ImGui::ShowDemoWindow();
+        ImPlot::ShowDemoWindow();
         ImGui::End();
         ;
     }
 
     void OnClose()
     {
-        std::cout << "Just closed" << std::endl;
+        // std::cout << "Just closed" << std::endl;
     }
 };
 
@@ -154,7 +164,7 @@ int main(int argc, char *argv[])
     }
     catch (const std::exception &e)
     {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR caught at highest level: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 

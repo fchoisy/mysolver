@@ -9,11 +9,12 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "imgui/implot.h"
 
 #include "Graphics.hpp"
 
 Graphics::Graphics(Experiment &experiment)
-    : experiment(experiment), SCREEN_SIZE(800, 600), internalState{.5f}
+    : experiment(experiment), SCREEN_SIZE(800, 600), internalState{.5f, true, false}
 {
 }
 
@@ -26,11 +27,31 @@ void Graphics::OnError(int errorCode, const char *msg)
     throw std::runtime_error(msg);
 }
 
+void Graphics::OnKey(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+    if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+    {
+        internalState->isPaused = !internalState->isPaused;
+    }
+    else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
+    {
+        internalState->shouldUpdateOneStep = true;
+    }
+}
+
+void Graphics::OnScroll(GLFWwindow *window, double xoffset, double yoffset)
+{
+    InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+    internalState->zoomLevel = glm::clamp((float)(internalState->zoomLevel + yoffset * .5f), 0.1f, 10.f);
+}
+
 void Graphics::Update()
 {
-    if (glfwGetKey(gWindow, GLFW_KEY_SPACE))
+    if (!internalState.isPaused || internalState.shouldUpdateOneStep)
     {
         experiment.OnUpdate();
+        internalState.shouldUpdateOneStep = false;
     }
 }
 
@@ -68,18 +89,6 @@ void Graphics::Render()
     glfwSwapBuffers(gWindow);
 }
 
-void OnScroll(GLFWwindow *window, double xoffset, double yoffset)
-{
-    // struct internalState
-    InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-    // if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
-    // {
-    //     internalState->cameraX += yoffset;
-    // }
-    // else
-    internalState->zoomLevel = glm::clamp((float)(internalState->zoomLevel + yoffset * .5f), 0.1f, 10.f);
-}
-
 void Graphics::Run()
 {
     // initialise GLFW
@@ -100,7 +109,8 @@ void Graphics::Run()
     // GLFW settings
     glfwMakeContextCurrent(gWindow);
     glfwSetWindowUserPointer(gWindow, &(this->internalState));
-    glfwSetScrollCallback(gWindow, OnScroll);
+    glfwSetScrollCallback(gWindow, Graphics::OnScroll);
+    glfwSetKeyCallback(gWindow, Graphics::OnKey);
 
     // initialise GLEW
     glewExperimental = GL_TRUE; //stops glew crashing on OSX :-/
@@ -133,6 +143,7 @@ void Graphics::Run()
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(gWindow, true);
@@ -143,8 +154,8 @@ void Graphics::Run()
     // run while the window is open
     while (!glfwWindowShouldClose(gWindow))
     {
-        // sleep until event
-        glfwWaitEvents();
+        // prossess events
+        glfwPollEvents();
 
         // feed inputs to dear imgui, start new frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -171,6 +182,7 @@ void Graphics::Run()
     // clean up and exit
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
     glfwDestroyWindow(gWindow);
