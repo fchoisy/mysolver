@@ -88,6 +88,7 @@ Model::~Model()
 void Model::SetVertexData(const std::vector<GLfloat> &vertexData)
 {
     this->vertexData = vertexData;
+    this->drawCount = vertexData.size() / 6;
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
     // Fill buffers with vertex data
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);

@@ -14,7 +14,7 @@
 #include "Graphics.hpp"
 
 Graphics::Graphics(Experiment &experiment)
-    : experiment(experiment), SCREEN_SIZE(800, 600), internalState{.5f, true, false}
+    : experiment(experiment), SCREEN_SIZE(1200, 800), internalState{.5f, true, false}
 {
 }
 
@@ -29,21 +29,29 @@ void Graphics::OnError(int errorCode, const char *msg)
 
 void Graphics::OnKey(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-    if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureKeyboard)
     {
-        internalState->isPaused = !internalState->isPaused;
-    }
-    else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
-    {
-        internalState->shouldUpdateOneStep = true;
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+        {
+            internalState->isPaused = !internalState->isPaused;
+        }
+        else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
+        {
+            internalState->shouldUpdateOneStep = true;
+        }
     }
 }
 
 void Graphics::OnScroll(GLFWwindow *window, double xoffset, double yoffset)
 {
-    InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-    internalState->zoomLevel = glm::clamp((float)(internalState->zoomLevel + yoffset * .5f), 0.1f, 10.f);
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureMouse)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        internalState->zoomLevel = glm::clamp((float)(internalState->zoomLevel + yoffset * .5f), 0.1f, 10.f);
+    }
 }
 
 void Graphics::Update()
@@ -64,7 +72,7 @@ void Graphics::Render()
     {
         model->program->use();
         glBindVertexArray(model->vao);
-        GLfloat aspect = 800.f / 600.f;
+        GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
         glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
         model->program->setUniform("projection", projection);
 

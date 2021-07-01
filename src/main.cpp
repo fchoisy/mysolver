@@ -33,24 +33,20 @@
 class BoundaryExperiment : public Experiment
 {
 private:
+    Graphics gGraphics;
     Model *gModel = NULL;
     Model *gModelBoundary = NULL;
-    Graphics gGraphics;
-    std::vector<GLfloat> gPosition;
-    GLfloat currentTime = 0.f;
-
-    const glm::vec2 gravity;
-    // static const glm::vec2 gravity(0.f, 0.f);
-
-    // Init particle set
     ParticleSet particleSet;
     ParticleSet boundary;
-    // ParticleSet particleSet(1, 1, .1f);
     ParticleSimulation particleSimulation;
-
-    const GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
-
     Kernel kernel;
+    // Simulation parameters
+    GLfloat currentTime;
+    const GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
+    const glm::vec2 gravity;
+    // Simulation history
+    std::vector<float> timeHistory;
+    std::vector<std::vector<Particle>> particleSetHistory;
 
 public:
     BoundaryExperiment()
@@ -58,6 +54,7 @@ public:
           particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f),
           boundary(30, 3, .1f, 3e3f, 3000.f, 1e-7f),
           timeStep(.01f),
+          currentTime(0.f),
           kernel(particleSet.spacing),
           gGraphics(*this)
     {
@@ -86,7 +83,6 @@ public:
         gGraphics.models.push_back(gModel);
         gModelBoundary = Model::ParticleVisualization(boundary.ToVertexData());
         gGraphics.models.push_back(gModelBoundary);
-
         // gGraphics.models.push_back(gModel);
         // std::cout << "Just initialized" << std::endl;
     }
@@ -100,7 +96,8 @@ public:
         gModelBoundary->SetVertexData(boundary.ToVertexData());
         currentTime += timeStep;
 
-        gPosition.push_back(particleSet.particles[0].position.y);
+        timeHistory.push_back(currentTime);
+        particleSetHistory.push_back(particleSet.particles);
         // std::cout << "Just updated" << std::endl;
     }
 
@@ -109,18 +106,30 @@ public:
         ImGui::Begin("Status");
         ImGui::Text("t = %03f", currentTime);
 
+        if (ImPlot::BeginPlot("Velocity of particle 0", "t", "v(t)"))
+        {
+            std::vector<float> velocityHistory;
+            for (auto &&ps : particleSetHistory)
+            {
+                velocityHistory.push_back(glm::length(ps.at(0).velocity));
+            }
+
+            ImPlot::PlotLine("velocity", timeHistory.data(), velocityHistory.data(), velocityHistory.size());
+            ImPlot::EndPlot();
+        }
+
         // const GLfloat my_values[] = {0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f};
         // ImGui::PlotLines("Positions", gPosition.data(), gPosition.size());
         // ImGui::PlotLines("Positions", gPosition.data(), sizeof(my_values));
 
-        if (ImGui::TreeNode("Reset simulation"))
+        if (ImGui::CollapsingHeader("Reset simulation"))
         {
 
-            // static int newNoParticlesX = 10;
-            // ImGui::SliderInt("Number of particles in the x direction", &newNoParticlesX, 1, 100);
+            static int newNoParticlesX = 10;
+            ImGui::SliderInt("Number of particles in the x direction", &newNoParticlesX, 1, 100);
 
-            // static int newNoParticlesY = 10;
-            // ImGui::SliderInt("Number of particles in the y direction", &newNoParticlesY, 1, 100);
+            static int newNoParticlesY = 10;
+            ImGui::SliderInt("Number of particles in the y direction", &newNoParticlesY, 1, 100);
 
             static float newStiffness = particleSet.stiffness;
             ImGui::InputFloat("Stiffness", &newStiffness, 0.0F, 0.0F, "%e");
@@ -133,13 +142,13 @@ public:
 
             if (ImGui::Button("Reset"))
             {
-                // particleSet = ParticleSet(newNoParticlesX, newNoParticlesY, .1f, newRestDensity, newStiffness, newViscosity);
-                particleSet = ParticleSet(10, 10, .1f, newRestDensity, newStiffness, newViscosity);
+                particleSet = ParticleSet(newNoParticlesX, newNoParticlesY, .1f, newRestDensity, newStiffness, newViscosity);
+                currentTime = 0.f;
+                particleSetHistory.clear();
             }
-            ImGui::TreePop();
         }
         // ImGui::ShowDemoWindow();
-        ImPlot::ShowDemoWindow();
+        // ImPlot::ShowDemoWindow();
         ImGui::End();
         ;
     }
