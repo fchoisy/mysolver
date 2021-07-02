@@ -62,6 +62,10 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 {
                     particle.density += neighbor->mass * kernel.Function(particle.position, neighbor->position);
                 }
+                for (auto &&neighbor : GetStaticNeighbors(particle))
+                {
+                    particle.density += neighbor->mass * kernel.Function(particle.position, neighbor->position);
+                }
                 particle.pressure = glm::max(particleSet->stiffness * (particle.density / particleSet->restDensity - 1.f), 0.f);
             }
 
@@ -72,8 +76,8 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 glm::vec2 viscosityAcceleration(0.f, 0.f);
                 for (auto &&neighbor : GetNeighbors(particle))
                 {
-                    glm::vec2 positionDiff = neighbor->position - particle.position;
-                    glm::vec2 velocityDiff = neighbor->velocity - particle.velocity;
+                    glm::vec2 positionDiff = particle.position - neighbor->position;
+                    glm::vec2 velocityDiff = particle.velocity - neighbor->velocity;
                     glm::vec2 kernelDer = kernel.Derivative(particle.position, neighbor->position);
                     viscosityAcceleration +=
                         kernelDer *
@@ -89,16 +93,18 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 {
                     fluidPressureAcceleration += (particle.pressure / (particle.density * particle.density) + neighbor->pressure / (neighbor->density * neighbor->density)) * kernel.Derivative(particle.position, neighbor->position);
                 }
-                fluidPressureAcceleration *= -particle.mass;
+                // fluidPressureAcceleration *= -particle.mass;
                 // Pressure acceleration from (static) boundary particles
                 glm::vec2 boundaryPressureAcceleration(0.f, 0.f);
                 for (auto &&staticNeighbor : GetStaticNeighbors(particle))
                 {
                     boundaryPressureAcceleration += kernel.Derivative(particle.position, staticNeighbor->position);
                 }
-                boundaryPressureAcceleration *= -2 * particle.mass * particle.pressure / (particle.density * particle.density);
+                boundaryPressureAcceleration *= particle.pressure *
+                                                (1.f / (particle.density * particle.density) +
+                                                 1.f / (particleSet->restDensity * particleSet->restDensity));
                 // Total pressure acceleration
-                glm::vec2 pressureAcceleration = fluidPressureAcceleration + boundaryPressureAcceleration;
+                glm::vec2 pressureAcceleration = -particle.mass * (fluidPressureAcceleration + boundaryPressureAcceleration);
                 // Other accelerations
                 glm::vec2 otherAccelerations = gravity;
                 // Total acceleration
@@ -107,7 +113,7 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
             // Update position based on acceleration for each particle
             // using the semi-implicit Euler method
             for (auto &&particle : particleSet->particles)
-            { 
+            {
                 particle.velocity += timeStep * particle.acceleration;
                 particle.position += timeStep * particle.velocity;
             }
