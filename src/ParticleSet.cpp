@@ -20,14 +20,14 @@ void ParticleSet::InitGrid(int xCount, int yCount, GLfloat spacing)
 }
 
 ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
-    : particles(), vertexData(), spacing(spacing),
+    : particles(), spacing(spacing),
       restDensity(1.2f), stiffness(.5f), viscosity(12.f),
       isStatic(false)
 {
     InitGrid(xCount, yCount, spacing);
 }
 ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing, GLfloat restDensity, GLfloat stiffness, GLfloat viscosity)
-    : particles(), vertexData(), spacing(spacing),
+    : particles(), spacing(spacing),
       restDensity(restDensity), stiffness(stiffness), viscosity(viscosity),
       isStatic(false)
 {
@@ -47,23 +47,23 @@ void ParticleSet::TranslateAll(GLfloat offsetX, GLfloat offsetY)
     }
 }
 
-const std::vector<GLfloat> &ParticleSet::ToVertexData()
-{
-    vertexData.clear();
-    for (std::vector<Particle>::const_iterator it = this->particles.begin(); it != this->particles.end(); ++it)
-    {
-        // Position
-        vertexData.push_back(it->position.x);
-        vertexData.push_back(it->position.y);
-        // Color
-        vertexData.push_back(it->pressure / 1000.f);
-        vertexData.push_back(0.f);
-        // vertexData.push_back(it->position.y);
-        vertexData.push_back(0.f);
-        vertexData.push_back(1.f);
-    }
-    return vertexData;
-}
+// const std::vector<GLfloat> &ParticleSet::ToVertexData()
+// {
+//     vertexData.clear();
+//     for (std::vector<Particle>::const_iterator it = this->particles.begin(); it != this->particles.end(); ++it)
+//     {
+//         // Position
+//         vertexData.push_back(it->position.x);
+//         vertexData.push_back(it->position.y);
+//         // Color
+//         vertexData.push_back(it->pressure / 1000.f);
+//         vertexData.push_back(0.f);
+//         // vertexData.push_back(it->position.y);
+//         vertexData.push_back(0.f);
+//         vertexData.push_back(1.f);
+//     }
+//     return vertexData;
+// }
 
 void ParticleSet::PrintAllPositions()
 {

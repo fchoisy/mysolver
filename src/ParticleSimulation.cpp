@@ -108,6 +108,9 @@ void ParticleSimulation::UpdateParticles(const float timeStep, const glm::vec2 g
                 // Other accelerations
                 glm::vec2 otherAccelerations = gravity;
                 // Total acceleration
+                particle.pressureAcceleration = pressureAcceleration;
+                particle.viscosityAcceleration = viscosityAcceleration;
+                particle.otherAccelerations = otherAccelerations;
                 particle.acceleration = viscosityAcceleration + pressureAcceleration + otherAccelerations;
             }
             // Update position based on acceleration for each particle

@@ -6,67 +6,69 @@
 
 Model *Model::Axes()
 {
-    return new Model({
-                         -10.f,
-                         0.f,
-                         1,
-                         0,
-                         0,
-                         1,
-                         10.f,
-                         0.f,
-                         1,
-                         0,
-                         0,
-                         1,
-                         0.f,
-                         -10.f,
-                         0,
-                         1,
-                         0,
-                         1,
-                         0.f,
-                         10.f,
-                         0,
-                         1,
-                         0,
-                         1,
-                     },
-                     ROOT_DIR "resources/graph-shaders/vertex-shader.glsl", "", ROOT_DIR "resources/graph-shaders/fragment-shader.glsl", GL_LINES);
+    Model *newModel = new Model(ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                "",
+                                ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                GL_LINES);
+    newModel->SetVertexData({
+        -10.f,
+        0.f,
+        1,
+        0,
+        0,
+        1,
+        10.f,
+        0.f,
+        1,
+        0,
+        0,
+        1,
+        0.f,
+        -10.f,
+        0,
+        1,
+        0,
+        1,
+        0.f,
+        10.f,
+        0,
+        1,
+        0,
+        1,
+    });
+    return newModel;
 }
 
 Model *Model::Graph(const std::vector<GLfloat> &vertexData)
 {
-    return new Model(vertexData,
-                     ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
-                     "",
-                     ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
-                     GL_LINE_STRIP);
+    Model *newModel = new Model(ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                "",
+                                ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                GL_LINE_STRIP);
+    newModel->SetVertexData(vertexData);
+    return newModel;
 }
 
-Model *Model::ParticleVisualization(const std::vector<GLfloat> &vertexData)
-{
-    return new Model(vertexData,
-                     ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
-                     ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
-                     ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
-                     GL_POINTS);
-}
+// Model *Model::ParticleVisualization(const std::vector<GLfloat> &vertexData)
+// {
+//     return new Model(vertexData,
+//  ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
+//  ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
+//  ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
+//  GL_POINTS);
+// }
 
-Model::Model(const std::vector<GLfloat> &vertexData, std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode) : vertexData(vertexData), drawMode(drawMode)
+Model::Model(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode)
+    : drawMode(drawMode), drawCount(0)
 {
     this->LoadShaders(vertexShaderFileName, geometryShaderFileName, fragmentShaderFileName);
 
-    // Store number of vertices
-    this->drawCount = vertexData.size() / 6;
     // Create VAO and VBO
     glGenVertexArrays(1, &(this->vao));
     glGenBuffers(1, &(this->vbo));
-    // Bind them
+    // Bind VAO and VBO
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-    // Fill buffers with vertex data
-    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
     // Set corresponding shader attributes
     static const GLsizei stride = 6 * sizeof(GLfloat);
     static const GLvoid *offset = (const GLvoid *)(2 * sizeof(GLfloat));

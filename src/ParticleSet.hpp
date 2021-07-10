@@ -10,7 +10,7 @@ class ParticleSet
 {
 private:
     void InitGrid(int xCount, int yCount, GLfloat spacing);
-    std::vector<GLfloat> vertexData;
+    // std::vector<GLfloat> vertexData;
 
 public:
     // Constructors and destructor
@@ -19,7 +19,7 @@ public:
     ~ParticleSet();
     // Methods
     void TranslateAll(GLfloat offsetX, GLfloat offsetY);
-    const std::vector<GLfloat> &ToVertexData();
+    // const std::vector<GLfloat> &ToVertexData();
     void PrintAllPositions();
     // Public fields
     std::vector<Particle> particles;

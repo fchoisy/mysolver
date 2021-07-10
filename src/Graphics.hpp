@@ -35,5 +35,4 @@ public:
     void Update();
     void Render();
     void Run();
-    std::vector<const Model *> models;
 };

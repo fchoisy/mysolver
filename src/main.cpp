@@ -27,22 +27,22 @@
 #include "ParticleSet.hpp"
 #include "ParticleSimulation.hpp"
 #include "Model.hpp"
+#include "ParticleSetModel.hpp"
 #include "Kernel.hpp"
 #include "helpers/RootDir.h"
 
 class BoundaryExperiment : public Experiment
 {
 private:
-    Graphics gGraphics;
-    Model *gModel = NULL;
-    Model *gModelBoundary = NULL;
+    Graphics graphics;
     ParticleSet particleSet;
     ParticleSet boundary;
+    std::vector<Model *> _models;
     ParticleSimulation particleSimulation;
     Kernel kernel;
     // Simulation parameters
     GLfloat currentTime;
-    const GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
+    GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
     const glm::vec2 gravity;
     // Simulation history
     std::vector<float> timeHistory;
@@ -50,74 +50,81 @@ private:
 
 public:
     BoundaryExperiment()
-        : gravity(0.f, -9.f),
+        : graphics(*this),
           particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f),
           boundary(90, 3, .1f, 3e3f, 3000.f, 1e-7f),
-          timeStep(.01f),
+          //   particleSetModel(particleSet),
+          //   boundaryModel(boundary),
           currentTime(0.f),
-          kernel(particleSet.spacing),
-          gGraphics(*this)
+          timeStep(.01f),
+          gravity(0.f, -9.81f),
+          kernel(particleSet.spacing)
     {
         particleSimulation.AddParticleSet(particleSet);
         boundary.isStatic = true;
         boundary.TranslateAll(-4.f, -.4f);
         particleSimulation.AddParticleSet(boundary);
-        gGraphics.Run();
+        graphics.Run();
     }
 
-    ~BoundaryExperiment()
+    const std::vector<Model *> &models()
     {
-        if (gModel)
-            delete gModel;
-        if (gModelBoundary)
-            delete gModelBoundary;
+        return _models;
     }
 
     void OnInit()
     {
-
-        // Model *axesModel = Model::Axes();
-        // gGraphics->models.push_back(axesModel);
-
-        gModel = Model::ParticleVisualization(particleSet.ToVertexData());
-        gGraphics.models.push_back(gModel);
-        gModelBoundary = Model::ParticleVisualization(boundary.ToVertexData());
-        gGraphics.models.push_back(gModelBoundary);
-        // gGraphics.models.push_back(gModel);
-        // std::cout << "Just initialized" << std::endl;
+        _models.push_back(new ParticleSetModel(particleSet));
+        _models.push_back(new ParticleSetModel(boundary));
+        for (auto &&model : _models)
+        {
+            model->Update();
+        }
     }
 
     void OnUpdate()
     {
-        particleSimulation.UpdateNeighbors(2 * particleSet.spacing - 1.e-05);
+        // Simulation step
+        particleSimulation.UpdateNeighbors(2 * particleSet.spacing);
         particleSimulation.UpdateParticles(timeStep, gravity);
-
-        gModel->SetVertexData(particleSet.ToVertexData());
-        gModelBoundary->SetVertexData(boundary.ToVertexData());
         currentTime += timeStep;
-
+        // Record history (for plotting)
         timeHistory.push_back(currentTime);
         particleSetHistory.push_back(particleSet.particles);
-        // std::cout << "Just updated" << std::endl;
+        // Update models (for visualization)
+        for (auto &&model : _models)
+        {
+            model->Update();
+        }
     }
 
+    // Defines the floating widgets of the Graphical User Interface
     void OnRender()
     {
-        ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
         ImGui::Begin("Dashboard", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Text("t = %03f", currentTime);
+            ImGui::SameLine();
+            ImGui::InputFloat("Time step", &timeStep);
 
-            if (ImPlot::BeginPlot("Velocity of particle 0", "t", "v(t)"))
+            if (ImPlot::BeginPlot("Properties of particle 0", "t", "magnitude"))
             {
                 std::vector<float> velocityHistory;
+                std::vector<float> pressureAccelerationHistory;
+                std::vector<float> viscosityAccelerationHistory;
+                std::vector<float> otherAccelerationsHistory;
                 for (auto &&ps : particleSetHistory)
                 {
                     velocityHistory.push_back(glm::length(ps.at(0).velocity));
+                    pressureAccelerationHistory.push_back(glm::length(ps.at(0).pressureAcceleration) / 10.f);
+                    viscosityAccelerationHistory.push_back(glm::length(ps.at(0).viscosityAcceleration) / 10.f);
+                    otherAccelerationsHistory.push_back(glm::length(ps.at(0).otherAccelerations) / 10.f);
                 }
-
                 ImPlot::PlotLine("velocity", timeHistory.data(), velocityHistory.data(), velocityHistory.size());
+                ImPlot::PlotLine("pressureAcceleration", timeHistory.data(), pressureAccelerationHistory.data(), pressureAccelerationHistory.size());
+                ImPlot::PlotLine("viscosityAcceleration", timeHistory.data(), viscosityAccelerationHistory.data(), viscosityAccelerationHistory.size());
+                ImPlot::PlotLine("otherAccelerations", timeHistory.data(), otherAccelerationsHistory.data(), otherAccelerationsHistory.size());
                 ImPlot::EndPlot();
             }
         }
@@ -162,12 +169,6 @@ public:
             static int newViscosityExponent = -7;
             ImGui::InputInt("Viscosity exponent", &newViscosityExponent, 1);
 
-            // static float newRestDensity = particleSet.restDensity;
-            // ImGui::InputFloat("Rest density", &newRestDensity, 0.0F, 0.0F, "%e");
-
-            // static float newViscosity = particleSet.viscosity;
-            // ImGui::InputFloat("Viscosity", &newViscosity, 0.0F, 0.0F, "%e");
-
             if (ImGui::Button("Reset"))
             {
                 float newRestDensity = newRestDensityMantissa * pow(10, newRestDensityExponent);
@@ -188,21 +189,38 @@ public:
 
     void OnClose()
     {
-        // std::cout << "Just closed" << std::endl;
     }
 };
 
-// the program starts here
-void AppMain()
-{
-    BoundaryExperiment boundaryExperiment;
-}
+// class ParameterSearch
+// {
+// private:
+//     ParticleSet boundary;
+//     ParticleSimulation particleSimulation;
+//     Kernel kernel;
+
+//     GLfloat currentTime;
+//     const GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
+//     const glm::vec2 gravity;
+
+// public:
+//     ParameterSearch()
+//         : gravity(0.f, -9.81f),
+//           boundary(90, 3, .1f, 3e3f, 3000.f, 1e-7f),
+//           timeStep(.01f),
+//           currentTime(0.f),
+//           kernel(particleSet.spacing),
+//     {
+//     ParticleSet particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f);
+
+//     }
+// }
 
 int main(int argc, char *argv[])
 {
     try
     {
-        AppMain();
+        BoundaryExperiment boundaryExperiment;
     }
     catch (const std::exception &e)
     {
