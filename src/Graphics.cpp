@@ -20,7 +20,7 @@ const float Graphics::ZOOM_MAX(100.f);
 Graphics::Graphics(Experiment &experiment)
     : experiment(experiment),
       SCREEN_SIZE(1200, 800),
-      internalState{.5f, true, false, false, glm::vec3(-.2f, -.2f, 0.f), 0, 0}
+      internalState{.02f, true, false, false, glm::vec3(-.2f, -.2f, 0.f), 0, 0}
 {
 }
 
