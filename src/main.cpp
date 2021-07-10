@@ -33,45 +33,47 @@
 class BoundaryExperiment : public Experiment
 {
 private:
-    Graphics graphics;
+    // Simulation parameters
+    GLfloat currentTime;
+    GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
+    GLfloat spacing;
+    const glm::vec2 gravity;
+    // Simulation entities
     ParticleSet particleSet;
     ParticleSet boundary;
     ParticleSet boundary2;
     ParticleSet boundary3;
-    std::vector<Model *> _models;
     ParticleSimulation particleSimulation;
     Kernel kernel;
-    // Simulation parameters
-    GLfloat currentTime;
-    GLfloat timeStep; // should respect the Courant-Friedrich-Levy condition
-    const glm::vec2 gravity;
+    // Visualization entities
+    Graphics graphics;
+    std::vector<Model *> _models;
     // Simulation history
     std::vector<float> timeHistory;
     std::vector<std::vector<Particle>> particleSetHistory;
 
 public:
     BoundaryExperiment()
-        : graphics(*this),
-          particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f),
-          boundary(90, 3, .1f, 3e3f, 3000.f, 1e-7f),
-          boundary2(3, 30, .1f, 3e3f, 3000.f, 1e-7f),
-          boundary3(3, 30, .1f, 3e3f, 3000.f, 1e-7f),
-          //   particleSetModel(particleSet),
-          //   boundaryModel(boundary),
-          currentTime(0.f),
+        : currentTime(0.f),
           timeStep(.01f),
+          spacing(3.f),
           gravity(0.f, -9.81f),
-          kernel(particleSet.spacing)
+          particleSet(1, 1, spacing, 3e3f, 3e5f, 1e-7f),
+          boundary(90, 3, spacing, 3e3f, 3000.f, 1e-7f),
+          boundary2(3, 30, spacing, 3e3f, 3000.f, 1e-7f),
+          boundary3(3, 30, spacing, 3e3f, 3000.f, 1e-7f),
+          kernel(spacing),
+          graphics(*this)
     {
         particleSimulation.AddParticleSet(particleSet);
         boundary.isStatic = true;
-        boundary.TranslateAll(-4.f, -.3f);
+        boundary.TranslateAll(-40.f * spacing, -3.f * spacing);
         particleSimulation.AddParticleSet(boundary);
         boundary2.isStatic = true;
-        boundary2.TranslateAll(-.3f, 0.f);
+        boundary2.TranslateAll(-3.f * spacing, 0.f * spacing);
         particleSimulation.AddParticleSet(boundary2);
         boundary3.isStatic = true;
-        boundary3.TranslateAll(.3f, 0.f);
+        boundary3.TranslateAll(3.f * spacing, 0.f * spacing);
         particleSimulation.AddParticleSet(boundary3);
         graphics.Run();
     }
@@ -192,7 +194,7 @@ public:
                 float newStiffness = newStiffnessMantissa * pow(10, newStiffnessExponent);
                 float newViscosity = newViscosityMantissa * pow(10, newViscosityExponent);
 
-                particleSet = ParticleSet(newNoParticlesX, newNoParticlesY, .1f, newRestDensity, newStiffness, newViscosity);
+                particleSet = ParticleSet(newNoParticlesX, newNoParticlesY, spacing, newRestDensity, newStiffness, newViscosity);
                 currentTime = 0.f;
                 timeHistory.clear();
                 particleSetHistory.clear();
