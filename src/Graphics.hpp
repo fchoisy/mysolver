@@ -23,6 +23,9 @@ private:
     const glm::vec2 SCREEN_SIZE;
     GLFWwindow *gWindow;
     InternalState internalState;
+    static const float ZOOM_SPEED;
+    static const float ZOOM_MIN;
+    static const float ZOOM_MAX;
     static void OnError(int errorCode, const char *msg);
     static void OnKey(GLFWwindow *window, int key, int scancode, int action, int mods);
     static void OnMouseButton(GLFWwindow *window, int button, int action, int mods);

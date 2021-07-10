@@ -13,83 +13,19 @@
 
 #include "Graphics.hpp"
 
+const float Graphics::ZOOM_SPEED(.5f);
+const float Graphics::ZOOM_MIN(.001f);
+const float Graphics::ZOOM_MAX(100.f);
+
 Graphics::Graphics(Experiment &experiment)
-    : experiment(experiment), SCREEN_SIZE(1200, 800), internalState{.5f, true, false, false, glm::vec3(-.2f, -.2f, 0.f), 0, 0}
+    : experiment(experiment),
+      SCREEN_SIZE(1200, 800),
+      internalState{.5f, true, false, false, glm::vec3(-.2f, -.2f, 0.f), 0, 0}
 {
 }
 
 Graphics::~Graphics()
 {
-}
-
-void Graphics::OnError(int errorCode, const char *msg)
-{
-    throw std::runtime_error(msg);
-}
-
-void Graphics::OnKey(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-    ImGuiIO &io = ImGui::GetIO();
-    if (!io.WantCaptureKeyboard)
-    {
-        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-        if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
-        {
-            internalState->isPaused = !internalState->isPaused;
-        }
-        else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
-        {
-            internalState->shouldUpdateOneStep = true;
-        }
-    }
-}
-
-void Graphics::OnMouseButton(GLFWwindow *window, int button, int action, int mods)
-{
-    ImGuiIO &io = ImGui::GetIO();
-    if (!io.WantCaptureMouse)
-    {
-        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-        if (button == GLFW_MOUSE_BUTTON_LEFT)
-        {
-            if (GLFW_PRESS == action)
-            {
-                internalState->lButtonDown = true;
-                glfwGetCursorPos(window, &internalState->oldX, &internalState->oldY);
-            }
-            else if (GLFW_RELEASE == action)
-            {
-                internalState->lButtonDown = false;
-            }
-        }
-    }
-}
-
-void Graphics::OnCursorPos(GLFWwindow *window, double newX, double newY)
-{
-    ImGuiIO &io = ImGui::GetIO();
-    if (!io.WantCaptureMouse)
-    {
-        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-        static const double movementFactor = 0.01;
-        if (internalState->lButtonDown)
-        {
-            internalState->cameraOffset.x += movementFactor * (newX - internalState->oldX);
-            internalState->cameraOffset.y -= movementFactor * (newY - internalState->oldY);
-            internalState->oldX = newX;
-            internalState->oldY = newY;
-        }
-    }
-}
-
-void Graphics::OnScroll(GLFWwindow *window, double xoffset, double yoffset)
-{
-    ImGuiIO &io = ImGui::GetIO();
-    if (!io.WantCaptureMouse)
-    {
-        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
-        internalState->zoomLevel = glm::clamp((float)(internalState->zoomLevel + yoffset * .5f), 0.1f, 10.f);
-    }
 }
 
 void Graphics::Update()
@@ -230,7 +166,79 @@ void Graphics::Run()
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
-
     glfwDestroyWindow(gWindow);
     glfwTerminate();
+}
+
+// CALLBACKS
+
+void Graphics::OnError(int errorCode, const char *msg)
+{
+    throw std::runtime_error(msg);
+}
+
+void Graphics::OnKey(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureKeyboard)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+        {
+            internalState->isPaused = !internalState->isPaused;
+        }
+        else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
+        {
+            internalState->shouldUpdateOneStep = true;
+        }
+    }
+}
+
+void Graphics::OnMouseButton(GLFWwindow *window, int button, int action, int mods)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureMouse)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        if (button == GLFW_MOUSE_BUTTON_LEFT)
+        {
+            if (GLFW_PRESS == action)
+            {
+                internalState->lButtonDown = true;
+                glfwGetCursorPos(window, &internalState->oldX, &internalState->oldY);
+            }
+            else if (GLFW_RELEASE == action)
+            {
+                internalState->lButtonDown = false;
+            }
+        }
+    }
+}
+
+void Graphics::OnCursorPos(GLFWwindow *window, double newX, double newY)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureMouse)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        static const double movementFactor = 0.01;
+        if (internalState->lButtonDown)
+        {
+            internalState->cameraOffset.x += movementFactor * (newX - internalState->oldX);
+            internalState->cameraOffset.y -= movementFactor * (newY - internalState->oldY);
+            internalState->oldX = newX;
+            internalState->oldY = newY;
+        }
+    }
+}
+
+void Graphics::OnScroll(GLFWwindow *window, double xoffset, double yoffset)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if (!io.WantCaptureMouse)
+    {
+        InternalState *internalState = (InternalState *)glfwGetWindowUserPointer(window);
+        float newZoomLevel = internalState->zoomLevel * (1.f + (float)(yoffset)*ZOOM_SPEED);
+        internalState->zoomLevel = glm::clamp(newZoomLevel, ZOOM_MIN, ZOOM_MAX);
+    }
 }
