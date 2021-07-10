@@ -17,7 +17,6 @@
 #include <GLFW/glfw3.h>            // Windowing
 #include <glm/vec2.hpp>            // Vector maths
 #include <glm/gtx/string_cast.hpp> // For debugging
-#include <tdogl/Program.h>
 
 #include "imgui/imgui.h"
 #include "imgui/implot.h"
@@ -37,6 +36,8 @@ private:
     Graphics graphics;
     ParticleSet particleSet;
     ParticleSet boundary;
+    ParticleSet boundary2;
+    ParticleSet boundary3;
     std::vector<Model *> _models;
     ParticleSimulation particleSimulation;
     Kernel kernel;
@@ -53,6 +54,8 @@ public:
         : graphics(*this),
           particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f),
           boundary(90, 3, .1f, 3e3f, 3000.f, 1e-7f),
+          boundary2(3, 30, .1f, 3e3f, 3000.f, 1e-7f),
+          boundary3(3, 30, .1f, 3e3f, 3000.f, 1e-7f),
           //   particleSetModel(particleSet),
           //   boundaryModel(boundary),
           currentTime(0.f),
@@ -62,8 +65,14 @@ public:
     {
         particleSimulation.AddParticleSet(particleSet);
         boundary.isStatic = true;
-        boundary.TranslateAll(-4.f, -.4f);
+        boundary.TranslateAll(-4.f, -.3f);
         particleSimulation.AddParticleSet(boundary);
+        boundary2.isStatic = true;
+        boundary2.TranslateAll(-.3f, 0.f);
+        particleSimulation.AddParticleSet(boundary2);
+        boundary3.isStatic = true;
+        boundary3.TranslateAll(.3f, 0.f);
+        particleSimulation.AddParticleSet(boundary3);
         graphics.Run();
     }
 
@@ -76,6 +85,8 @@ public:
     {
         _models.push_back(new ParticleSetModel(particleSet));
         _models.push_back(new ParticleSetModel(boundary));
+        _models.push_back(new ParticleSetModel(boundary2));
+        _models.push_back(new ParticleSetModel(boundary3));
         for (auto &&model : _models)
         {
             model->Update();
@@ -114,17 +125,23 @@ public:
                 std::vector<float> pressureAccelerationHistory;
                 std::vector<float> viscosityAccelerationHistory;
                 std::vector<float> otherAccelerationsHistory;
+                std::vector<float> pressureHistory;
+                std::vector<float> densityHistory;
                 for (auto &&ps : particleSetHistory)
                 {
                     velocityHistory.push_back(glm::length(ps.at(0).velocity));
                     pressureAccelerationHistory.push_back(glm::length(ps.at(0).pressureAcceleration) / 10.f);
                     viscosityAccelerationHistory.push_back(glm::length(ps.at(0).viscosityAcceleration) / 10.f);
                     otherAccelerationsHistory.push_back(glm::length(ps.at(0).otherAccelerations) / 10.f);
+                    pressureHistory.push_back(ps.at(0).pressure / 10000.f);
+                    densityHistory.push_back(ps.at(0).density / 1000.f);
                 }
                 ImPlot::PlotLine("velocity", timeHistory.data(), velocityHistory.data(), velocityHistory.size());
-                ImPlot::PlotLine("pressureAcceleration", timeHistory.data(), pressureAccelerationHistory.data(), pressureAccelerationHistory.size());
-                ImPlot::PlotLine("viscosityAcceleration", timeHistory.data(), viscosityAccelerationHistory.data(), viscosityAccelerationHistory.size());
-                ImPlot::PlotLine("otherAccelerations", timeHistory.data(), otherAccelerationsHistory.data(), otherAccelerationsHistory.size());
+                // ImPlot::PlotLine("pressureAcceleration", timeHistory.data(), pressureAccelerationHistory.data(), pressureAccelerationHistory.size());
+                // ImPlot::PlotLine("viscosityAcceleration", timeHistory.data(), viscosityAccelerationHistory.data(), viscosityAccelerationHistory.size());
+                // ImPlot::PlotLine("otherAccelerations", timeHistory.data(), otherAccelerationsHistory.data(), otherAccelerationsHistory.size());
+                ImPlot::PlotLine("pressure", timeHistory.data(), pressureHistory.data(), pressureHistory.size());
+                // ImPlot::PlotLine("density", timeHistory.data(), densityHistory.data(), densityHistory.size());
                 ImPlot::EndPlot();
             }
         }
