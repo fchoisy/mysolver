@@ -3,7 +3,6 @@
 #include <vector>
 #include <map>
 #include <glm/vec2.hpp>
-// #include <functional>  // reference_wrapper
 
 #include "Particle.hpp"
 #include "ParticleSet.hpp"
@@ -20,5 +19,10 @@ public:
     void UpdateNeighbors(float kernelSupport);
     const std::vector<const Particle *> &GetNeighbors(const Particle &particle) const;
     const std::vector<const Particle *> &GetStaticNeighbors(const Particle &particle) const;
-    void UpdateParticles(float timeStep, const glm::vec2 gravity) const;
+    // Update all quantities except position and velocity
+    void UpdateParticleQuantities(const glm::vec2 gravity) const;
+    // Estimate best time step
+    float ComputeTimeStep(float CFLNumber) const;
+    // Update particles positions and velocities
+    void UpdateParticlePositions(float timeStep) const;
 };
