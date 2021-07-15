@@ -1,14 +1,19 @@
 #pragma once
 
-#include <GL/glew.h>    // GLfloat
 #include <glm/vec2.hpp> // glm::vec2
+
+class ParticleSet; // Forward declaration for mutual dependency
 
 class Particle
 {
 private:
+    float volume_, mass_; // Immutable
 public:
-    Particle(const glm::vec2 &position, const GLfloat &density, const GLfloat &mass);
+    Particle(const ParticleSet *set, const glm::vec2 &position, const float &density, const float &volume);
     ~Particle();
+    const ParticleSet *set;
     glm::vec2 position, velocity, acceleration, pressureAcceleration, viscosityAcceleration, otherAccelerations;
-    GLfloat density, pressure, mass;
+    float density, pressure;
+    float mass() const;
+    float volume() const;
 };
