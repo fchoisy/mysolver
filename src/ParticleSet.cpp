@@ -1,9 +1,12 @@
 
-#include <iostream>
 #include "ParticleSet.hpp"
 
-void ParticleSet::InitGrid(int xCount, int yCount, GLfloat spacing)
+#include <iostream>     // std::cout
+#include <glm/vec2.hpp> // glm::vec2
+
+void ParticleSet::InitGrid(int xCount, int yCount, float spacing)
 {
+    const float volume = spacing * spacing;
     particles.clear();
     particles.reserve(xCount * yCount);
     for (size_t i = 0; i < xCount; i++)
@@ -11,22 +14,23 @@ void ParticleSet::InitGrid(int xCount, int yCount, GLfloat spacing)
         for (size_t j = 0; j < yCount; j++)
         {
             Particle part(
+                this,
                 glm::vec2(i * spacing, j * spacing),
                 restDensity,
-                restDensity * spacing * spacing);
+                volume);
             particles.push_back(part);
         }
     }
 }
 
-ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing)
+ParticleSet::ParticleSet(int xCount, int yCount, float spacing)
     : particles(), spacing(spacing),
       restDensity(1.2f), stiffness(.5f), viscosity(12.f),
       isStatic(false)
 {
     InitGrid(xCount, yCount, spacing);
 }
-ParticleSet::ParticleSet(int xCount, int yCount, GLfloat spacing, GLfloat restDensity, GLfloat stiffness, GLfloat viscosity)
+ParticleSet::ParticleSet(int xCount, int yCount, float spacing, float restDensity, float stiffness, float viscosity)
     : particles(), spacing(spacing),
       restDensity(restDensity), stiffness(stiffness), viscosity(viscosity),
       isStatic(false)
@@ -38,7 +42,7 @@ ParticleSet::~ParticleSet()
 {
 }
 
-void ParticleSet::TranslateAll(GLfloat offsetX, GLfloat offsetY)
+void ParticleSet::TranslateAll(float offsetX, float offsetY)
 {
     for (auto &&particle : particles)
     {
@@ -46,24 +50,6 @@ void ParticleSet::TranslateAll(GLfloat offsetX, GLfloat offsetY)
         particle.position.y += offsetY;
     }
 }
-
-// const std::vector<GLfloat> &ParticleSet::ToVertexData()
-// {
-//     vertexData.clear();
-//     for (std::vector<Particle>::const_iterator it = this->particles.begin(); it != this->particles.end(); ++it)
-//     {
-//         // Position
-//         vertexData.push_back(it->position.x);
-//         vertexData.push_back(it->position.y);
-//         // Color
-//         vertexData.push_back(it->pressure / 1000.f);
-//         vertexData.push_back(0.f);
-//         // vertexData.push_back(it->position.y);
-//         vertexData.push_back(0.f);
-//         vertexData.push_back(1.f);
-//     }
-//     return vertexData;
-// }
 
 void ParticleSet::PrintAllPositions()
 {
