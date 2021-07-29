@@ -5,37 +5,78 @@
  * Contains the callbacks that are called by the GUI.
  */
 
-// third-party libraries
-
-// standard C++ libraries
-#include <iostream>
-#include <iomanip> // std::setw()
-#include <limits>
-#include <vector>
-
-#include <GL/glew.h>               // Runtime loading of OpenGL API functions
-#include <GLFW/glfw3.h>            // Windowing
-#include <glm/vec2.hpp>            // Vector maths
-#include <glm/gtx/string_cast.hpp> // For debugging
-
-#include "imgui/imgui.h"
-#include "imgui/implot.h"
-
+// Project headers
 #include "Experiment.hpp"
 #include "Graphics.hpp"
 #include "ParticleSet.hpp"
 #include "ParticleSimulation.hpp"
 #include "Model.hpp"
 #include "ParticleSetModel.hpp"
-#include "Kernel.hpp"
+#include "HistoryTracker.hpp"
 #include "helpers/RootDir.h"
+// Third-party libraries
+#include "imgui/imgui.h"           // ImGUI for simulation parameters
+#include "imgui/implot.h"          // Betters plots for ImGUI
+#include <GL/glew.h>               // Runtime loading of OpenGL API functions
+#include <GLFW/glfw3.h>            // Windowing
+#include <glm/vec2.hpp>            // Vector maths
+#include <glm/gtx/string_cast.hpp> // For debugging
+// Standard C++ libraries
+#include <iostream>
+#include <iomanip> // std::setw()
+#include <limits>
+#include <vector>
+
+// class HistoryTracker
+// {
+// private:
+//     std::vector<float> timeHistory;
+//     std::vector<std::vector<Particle>> targetHistory;
+//     const ParticleSet *target;
+
+// public:
+//     HistoryTracker()
+//         : target(nullptr)
+//     {
+//     }
+
+//     void SetTarget(const ParticleSet *target)
+//     {
+//         this->target = target;
+//     }
+
+//     void Step(float currentTime)
+//     {
+//         if (target != nullptr)
+//         {
+//             timeHistory.push_back(currentTime);
+//             targetHistory.push_back(target->particles);
+//         }
+//     }
+
+//     std::vector<float> &GetTimeHistory()
+//     {
+//         return timeHistory;
+//     }
+
+//     std::vector<std::vector<Particle>> &GetTargetHistory()
+//     {
+//         return targetHistory;
+//     }
+
+//     void Clear()
+//     {
+//         timeHistory.clear();
+//         targetHistory.clear();
+//     }
+// };
 
 class BoundaryExperiment : public Experiment
 {
 private:
     const int defaultCountX;
     const int defaultCountY;
-    const float spacing;
+    const float defaultSpacing;
     const float defaultRestDensity;
     const float defaultStiffness;
     const float defaultViscosity;
@@ -45,39 +86,70 @@ private:
     float timeStep; // should respect the Courant-Friedrich-Levy condition
     const glm::vec2 gravity;
     // Simulation entities
-    ParticleSet particleSet;
-    ParticleSet boundary;
-    ParticleSet boundary2;
-    ParticleSet boundary3;
+    // ParticleSet particleSet;
+    // ParticleSet boundary;
+    // ParticleSet boundary2;
+    // ParticleSet boundary3;
+    std::vector<ParticleSet> particleSets;
     ParticleSimulation particleSimulation;
-    Kernel kernel;
     // Visualization entities
     Graphics graphics;
     std::vector<Model *> _models;
     // Simulation history
-    std::vector<float> timeHistory;
-    std::vector<std::vector<Particle>> particleSetHistory;
+    HistoryTracker historyTracker;
+    // std::vector<float> timeHistory;
+    // std::vector<std::vector<Particle>> particleSetHistory;
 
     void InitializeSimulation(int countX, int countY, float spacing, float restDensity, float stiffness, float viscosity, float boundaryViscosity)
     {
-        particleSet = ParticleSet(countX, countY, spacing, restDensity, stiffness, viscosity);
-        boundary = ParticleSet(30, 3, spacing, restDensity, stiffness, viscosity);
-        boundary2 = ParticleSet(3, 30, spacing, restDensity, stiffness, viscosity);
-        boundary3 = ParticleSet(3, 30, spacing, restDensity, stiffness, viscosity);
-        // particleSet.TranslateAll(0.f, 3.f * spacing);
-        // particleSet.TranslateAll(1.f * spacing, 0.f);
+        // Initialize particle sets
+        particleSets.clear();
+        ParticleSet fluid = ParticleSet(countX, countY, spacing, restDensity, stiffness, viscosity);
+        ParticleSet boundary = ParticleSet(30, 3, spacing, restDensity, stiffness, viscosity);
+        ParticleSet boundary2 = ParticleSet(3, 30, spacing, restDensity, stiffness, viscosity);
+        ParticleSet boundary3 = ParticleSet(3, 30, spacing, restDensity, stiffness, viscosity);
+        // fluid.TranslateAll(0.f, 3.f * spacing);
+        // fluid.TranslateAll(1.f * spacing, 0.f);
         boundary.TranslateAll(-10.f * spacing, -3.f * spacing);
         boundary2.TranslateAll(-3.f * spacing, 0.f * spacing);
-        boundary3.TranslateAll(3.f * spacing, 0.f * spacing);
+        boundary3.TranslateAll(10.f * spacing, 0.f * spacing);
         boundary.isStatic = true;
         boundary2.isStatic = true;
         boundary3.isStatic = true;
+        particleSets.push_back(fluid);
+        particleSets.push_back(boundary);
+        particleSets.push_back(boundary2);
+        particleSets.push_back(boundary3);
+        historyTracker.SetTarget(&particleSets.front());
+        // Add particle sets to simulation
+        particleSimulation.Clear();
+        for (auto &&ps : particleSets)
+        {
+            particleSimulation.AddParticleSet(ps);
+        }
+    }
+
+    void InitializeModels()
+    {
+        _models.clear();
+        for (auto &&ps : particleSets)
+        {
+            _models.push_back(new ParticleSetModel(ps));
+        }
+        // _models.push_back(new ParticleSetModel(particleSet));
+        // _models.push_back(new ParticleSetModel(boundary));
+        // _models.push_back(new ParticleSetModel(boundary2));
+        // _models.push_back(new ParticleSetModel(boundary3));
+        for (auto &&model : _models)
+        {
+            model->Update();
+        }
     }
 
 public:
     BoundaryExperiment()
         : defaultCountX(1), defaultCountY(1),
-          spacing(3.f),
+          defaultSpacing(3.f),
           defaultRestDensity(3e3f),
           defaultStiffness(3e7f),
           defaultViscosity(2e-7f),
@@ -85,19 +157,21 @@ public:
           currentTime(0.f),
           timeStep(.01f),
           gravity(0.f, -9.81f),
-          particleSet(defaultCountX, defaultCountY, spacing, defaultRestDensity, defaultStiffness, defaultViscosity),
-          boundary(30, 3, spacing, defaultRestDensity, defaultStiffness, defaultBoundaryViscosity),
-          boundary2(3, 30, spacing, defaultRestDensity, defaultStiffness, defaultBoundaryViscosity),
-          boundary3(3, 30, spacing, defaultRestDensity, defaultStiffness, defaultBoundaryViscosity),
-          kernel(spacing),
+          //   particleSet(defaultCountX, defaultCountY, defaultSpacing, defaultRestDensity, defaultStiffness, defaultViscosity),
+          //   boundary(30, 3, defaultSpacing, defaultRestDensity, defaultStiffness, defaultBoundaryViscosity),
+          //   boundary2(3, 30, defaultSpacing, defaultRestDensity, defaultStiffness, defaultBoundaryViscosity),
+          //   boundary3(3, 30, defaultSpacing, defaultRestDensity, defaultStiffness, defaultBoundaryViscosity),
           graphics(*this)
     {
-        InitializeSimulation(defaultCountX, defaultCountY, spacing, defaultRestDensity, defaultStiffness, defaultViscosity, defaultBoundaryViscosity);
-        particleSimulation.AddParticleSet(particleSet);
-        particleSimulation.AddParticleSet(boundary);
-        particleSimulation.AddParticleSet(boundary2);
-        particleSimulation.AddParticleSet(boundary3);
-        graphics.Run();
+        InitializeSimulation(defaultCountX, defaultCountY, defaultSpacing, defaultRestDensity, defaultStiffness, defaultViscosity, defaultBoundaryViscosity);
+        // particleSimulation.AddParticleSet(particleSet);
+        // particleSimulation.AddParticleSet(boundary);
+        // for (auto &&ps : particleSets)
+        // {
+        //     particleSimulation.AddParticleSet(ps);
+        // }
+        // particleSimulation.AddParticleSet(boundary2);
+        // particleSimulation.AddParticleSet(boundary3);
     }
 
     const std::vector<Model *> &models()
@@ -105,31 +179,46 @@ public:
         return _models;
     }
 
+    void Run()
+    {
+        graphics.Run();
+    }
+
     void OnInit()
     {
-        _models.push_back(new ParticleSetModel(particleSet));
-        _models.push_back(new ParticleSetModel(boundary));
-        _models.push_back(new ParticleSetModel(boundary2));
-        _models.push_back(new ParticleSetModel(boundary3));
-        for (auto &&model : _models)
-        {
-            model->Update();
-        }
+        InitializeModels();
+        // _models.clear();
+        // for (auto &&ps : particleSets)
+        // {
+        //     _models.push_back(new ParticleSetModel(ps));
+        // }
+        // // _models.push_back(new ParticleSetModel(particleSet));
+        // // _models.push_back(new ParticleSetModel(boundary));
+        // // _models.push_back(new ParticleSetModel(boundary2));
+        // // _models.push_back(new ParticleSetModel(boundary3));
+        // for (auto &&model : _models)
+        // {
+        //     model->Update();
+        // }
     }
 
     void OnUpdate()
     {
-        // Simulation step
-        particleSimulation.UpdateNeighbors(2 * particleSet.spacing);
-        // particleSimulation.UpdateParticles(timeStep, gravity);
-        // timeStep = particleSimulation.UpdateParticles(0.f, gravity);
-        particleSimulation.UpdateParticleQuantities(gravity);
-        // timeStep = particleSimulation.ComputeTimeStep(0.4);
-        particleSimulation.UpdateParticlePositions(timeStep);
-        currentTime += timeStep;
-        // Record history (for plotting)
-        timeHistory.push_back(currentTime);
-        particleSetHistory.push_back(particleSet.particles);
+        for (int i = 0; i < 5; i++)
+        {
+            // Simulation step
+            particleSimulation.UpdateNeighbors(2 * defaultSpacing);
+            // particleSimulation.UpdateParticles(timeStep, gravity);
+            // timeStep = particleSimulation.UpdateParticles(0.f, gravity);
+            particleSimulation.UpdateParticleQuantities(gravity);
+            // timeStep = particleSimulation.ComputeTimeStep(0.4);
+            particleSimulation.UpdateParticlePositions(timeStep);
+            currentTime += timeStep;
+            // Record history (for plotting)
+            // timeHistory.push_back(currentTime);
+            // particleSetHistory.push_back(particleSet.particles);
+            historyTracker.Step(currentTime);
+        }
         // Update models (for visualization)
         for (auto &&model : _models)
         {
@@ -140,7 +229,7 @@ public:
     // Defines the floating widgets of the Graphical User Interface
     void OnRender()
     {
-        ImGui::Begin("Dashboard", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin("Simulation Parameters", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Text("t = %f", currentTime);
@@ -156,7 +245,7 @@ public:
                 std::vector<float> otherAccelerationsHistory;
                 std::vector<float> pressureHistory;
                 std::vector<float> densityHistory;
-                for (auto &&ps : particleSetHistory)
+                for (auto &&ps : historyTracker.GetTargetHistory())
                 {
                     velocityHistory.push_back(glm::length(ps.at(0).velocity));
                     pressureAccelerationHistory.push_back(glm::length(ps.at(0).pressureAcceleration) / 10.f);
@@ -165,51 +254,42 @@ public:
                     pressureHistory.push_back(ps.at(0).pressure / 10000.f);
                     densityHistory.push_back(ps.at(0).density / 1000.f);
                 }
-                ImPlot::PlotLine("velocity", timeHistory.data(), velocityHistory.data(), velocityHistory.size());
-                // ImPlot::PlotLine("pressureAcceleration", timeHistory.data(), pressureAccelerationHistory.data(), pressureAccelerationHistory.size());
-                // ImPlot::PlotLine("viscosityAcceleration", timeHistory.data(), viscosityAccelerationHistory.data(), viscosityAccelerationHistory.size());
-                // ImPlot::PlotLine("otherAccelerations", timeHistory.data(), otherAccelerationsHistory.data(), otherAccelerationsHistory.size());
-                ImPlot::PlotLine("pressure", timeHistory.data(), pressureHistory.data(), pressureHistory.size());
-                // ImPlot::PlotLine("density", timeHistory.data(), densityHistory.data(), densityHistory.size());
+                ImPlot::PlotLine("velocity", historyTracker.GetTimeHistory().data(), velocityHistory.data(), velocityHistory.size());
+                // ImPlot::PlotLine("pressureAcceleration", historyTracker.GetTimeHistory().data(), pressureAccelerationHistory.data(), pressureAccelerationHistory.size());
+                // ImPlot::PlotLine("viscosityAcceleration", historyTracker.GetTimeHistory().data(), viscosityAccelerationHistory.data(), viscosityAccelerationHistory.size());
+                // ImPlot::PlotLine("otherAccelerations", historyTracker.GetTimeHistory().data(), otherAccelerationsHistory.data(), otherAccelerationsHistory.size());
+                ImPlot::PlotLine("pressure", historyTracker.GetTimeHistory().data(), pressureHistory.data(), pressureHistory.size());
+                // ImPlot::PlotLine("density", historyTracker.GetTimeHistory().data(), densityHistory.data(), densityHistory.size());
                 ImPlot::EndPlot();
             }
         }
         if (ImGui::CollapsingHeader("Reset simulation", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Text("Number of particles");
-            // ImGui::SameLine();
             static int newNoParticlesX = 3;
             ImGui::SliderInt("x", &newNoParticlesX, 1, 10);
 
             static int newNoParticlesY = 4;
-            // ImGui::SameLine();
             ImGui::SliderInt("y", &newNoParticlesY, 1, 10);
 
-            static float newRestDensity = particleSet.restDensity;
+            static float newRestDensity = defaultRestDensity;
             ImGui::InputFloat("Rest density", &newRestDensity, 0.0F, 0.0F, "%e");
 
-            static float newStiffness = particleSet.stiffness;
+            static float newStiffness = defaultStiffness;
             ImGui::InputFloat("Stiffness", &newStiffness, 0.0F, 0.0F, "%e");
 
-            static float newViscosity = particleSet.viscosity;
+            static float newViscosity = defaultViscosity;
             ImGui::InputFloat("Viscosity", &newViscosity, 0.0F, 0.0F, "%e");
 
             if (ImGui::Button("Reset"))
             {
-                // float newRestDensity = newRestDensityMantissa * pow(10, newRestDensityExponent);
-                // float newStiffness = newStiffnessMantissa * pow(10, newStiffnessExponent);
-                // float newViscosity = newViscosityMantissa * pow(10, newViscosityExponent);
-
-                InitializeSimulation(newNoParticlesX, newNoParticlesY, spacing, newRestDensity, newStiffness, newViscosity, defaultBoundaryViscosity);
+                historyTracker.Clear();
+                InitializeSimulation(newNoParticlesX, newNoParticlesY, defaultSpacing, newRestDensity, newStiffness, newViscosity, defaultBoundaryViscosity);
+                InitializeModels();
                 currentTime = 0.f;
-                timeHistory.clear();
-                particleSetHistory.clear();
             }
         }
-        // ImGui::ShowDemoWindow();
-        // ImPlot::ShowDemoWindow();
         ImGui::End();
-        ;
     }
 
     void OnClose()
@@ -217,35 +297,12 @@ public:
     }
 };
 
-// class ParameterSearch
-// {
-// private:
-//     ParticleSet boundary;
-//     ParticleSimulation particleSimulation;
-//     Kernel kernel;
-
-//     float currentTime;
-//     const float timeStep; // should respect the Courant-Friedrich-Levy condition
-//     const glm::vec2 gravity;
-
-// public:
-//     ParameterSearch()
-//         : gravity(0.f, -9.81f),
-//           boundary(90, 3, .1f, 3e3f, 3000.f, 1e-7f),
-//           timeStep(.01f),
-//           currentTime(0.f),
-//           kernel(particleSet.spacing),
-//     {
-//     ParticleSet particleSet(1, 1, .1f, 3e3f, 3e5f, 1e-7f);
-
-//     }
-// }
-
 int main(int argc, char *argv[])
 {
     try
     {
         BoundaryExperiment boundaryExperiment;
+        boundaryExperiment.Run();
     }
     catch (const std::exception &e)
     {

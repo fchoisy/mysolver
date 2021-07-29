@@ -16,6 +16,7 @@ private:
 
 public:
     void AddParticleSet(ParticleSet &particleSet);
+    void Clear();
     void UpdateNeighbors(float kernelSupport);
     const std::vector<const Particle *> &GetNeighbors(const Particle &particle) const;
     const std::vector<const Particle *> &GetStaticNeighbors(const Particle &particle) const;

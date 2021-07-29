@@ -10,6 +10,13 @@ void ParticleSimulation::AddParticleSet(ParticleSet &particleSet)
     particleSets.push_back(&particleSet);
 }
 
+void ParticleSimulation::Clear()
+{
+    particleSets.clear();
+    neighbors.clear();
+    staticNeighbors.clear();
+}
+
 void ParticleSimulation::UpdateNeighbors(const float kernelSupport)
 {
     for (auto &&particleSet : particleSets)
