@@ -39,7 +39,7 @@ private:
     const float defaultBoundaryViscosity;
     // Simulation parameters
     float currentTime;
-    float timeStep; // should respect the Courant-Friedrich-Levy condition
+    float timeStep;
     int simulationStepsPerRender;
     const glm::vec2 gravity;
     // Simulation entities
@@ -57,36 +57,24 @@ private:
         particleSets.clear();
 
         // - Fluid
-        ParticleSet fluid = ParticleSet(countX, countY, spacing, restDensity, stiffness, viscosity);
-        // fluid.TranslateAll(0.f, 3.f * spacing);
-        // fluid.TranslateAll(1.f * spacing, 0.f);
-        particleSets.push_back(fluid);
+        particleSets.push_back(ParticleSet(countX, countY, spacing, restDensity, stiffness, viscosity));
 
         // - Boundaries
-        ParticleSet boundary = ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity);
-        boundary.TranslateAll(-3.f * spacing, -3.f * spacing);
-        boundary.isBoundary = true;
-        particleSets.push_back(boundary);
+        particleSets.push_back(ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.back().TranslateAll(-3.f * spacing, -3.f * spacing);
+        particleSets.back().isBoundary = true;
 
-        ParticleSet boundary2 = ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity);
-        boundary2.TranslateAll(-3.f * spacing, 0.f * spacing);
-        boundary2.isBoundary = true;
-        particleSets.push_back(boundary2);
+        particleSets.push_back(ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.back().TranslateAll(-3.f * spacing, 0.f * spacing);
+        particleSets.back().isBoundary = true;
 
-        ParticleSet boundary3 = ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity);
-        boundary3.TranslateAll(5.f * spacing, 0.f * spacing);
-        boundary3.isBoundary = true;
-        particleSets.push_back(boundary3);
+        particleSets.push_back(ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.back().TranslateAll(5.f * spacing, 0.f * spacing);
+        particleSets.back().isBoundary = true;
 
-        ParticleSet boundary4 = ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity);
-        boundary4.TranslateAll(-3.f * spacing, 5.f * spacing);
-        boundary4.isBoundary = true;
-        particleSets.push_back(boundary4);
-
-        // ParticleSet boundary3 = ParticleSet(3, 11, spacing, restDensity, stiffness, boundaryViscosity);
-        // boundary3.TranslateAll(5.f * spacing, -3.f * spacing);
-        // boundary3.isBoundary = true;
-        // particleSets.push_back(boundary3);
+        particleSets.push_back(ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.back().TranslateAll(-3.f * spacing, 5.f * spacing);
+        particleSets.back().isBoundary = true;
 
         // Bind history tracker to the particle fluid
         historyTracker.SetTarget(&particleSets.front());
@@ -211,19 +199,21 @@ public:
                 ImPlot::EndPlot();
             }
         }
+        static std::vector<float> densityHistory;
+        static std::vector<float> pressureHistory;
+        static std::vector<float> pressureAccelerationHistory;
+        static std::vector<float> viscosityAccelerationHistory;
+        static std::vector<float> otherAccelerationsHistory;
+        static std::vector<float> velocityHistory;
         if (ImGui::CollapsingHeader("Particle Quantities", ImGuiTreeNodeFlags_DefaultOpen))
         {
             if (ImPlot::BeginPlot("Properties of the particle of index 0", "time", "magnitude", ImVec2(-1, 0), 0, 0, ImPlotAxisFlags_AutoFit))
             {
                 ImPlot::SetLegendLocation(ImPlotLocation_South, ImPlotOrientation_Vertical, true);
-                std::vector<float> densityHistory;
-                std::vector<float> pressureHistory;
-                std::vector<float> pressureAccelerationHistory;
-                std::vector<float> viscosityAccelerationHistory;
-                std::vector<float> otherAccelerationsHistory;
-                std::vector<float> velocityHistory;
-                for (auto &&ps : historyTracker.GetTargetHistory())
+
+                while (historyTracker.GetTargetHistory().size() > densityHistory.size())
                 {
+                    auto ps = historyTracker.GetTargetHistory().back();
                     densityHistory.push_back(ps.at(0).density / 1000.f);
                     pressureHistory.push_back(ps.at(0).pressure / 10000.f);
                     pressureAccelerationHistory.push_back(glm::length(ps.at(0).pressureAcceleration) / 10.f);
@@ -261,6 +251,12 @@ public:
             if (ImGui::Button("Reset"))
             {
                 historyTracker.Clear();
+                densityHistory.clear();
+                pressureHistory.clear();
+                pressureAccelerationHistory.clear();
+                viscosityAccelerationHistory.clear();
+                otherAccelerationsHistory.clear();
+                velocityHistory.clear();
                 InitializeSimulation(newNoParticlesX, newNoParticlesY, defaultSpacing, newRestDensity, newStiffness, newViscosity, defaultBoundaryViscosity);
                 InitializeModels();
                 currentTime = 0.f;
