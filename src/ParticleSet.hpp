@@ -19,5 +19,5 @@ public:
     // Public fields
     std::vector<Particle> particles;
     float spacing, restDensity, stiffness, viscosity;
-    bool isStatic;
+    bool isBoundary;
 };

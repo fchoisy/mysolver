@@ -22,17 +22,34 @@ void ParticleSetModel::Update()
 void ParticleSetModel::UpdateVertexData()
 {
     vertexData.clear();
-    for (auto &&particle : particleSet.particles)
+
+    if (particleSet.isBoundary)
     {
-        // Position
-        vertexData.push_back(particle.position.x);
-        vertexData.push_back(particle.position.y);
-        // Color
-        vertexData.push_back(particle.pressure / 1000.f);
-        // vertexData.push_back(glm::length(particle.velocity));
-        vertexData.push_back(0.f);
-        // vertexData.push_back(particle.position.y);
-        vertexData.push_back(0.f);
-        vertexData.push_back(1.f);
+        for (auto &&particle : particleSet.particles)
+        {
+            // Position
+            vertexData.push_back(particle.position.x);
+            vertexData.push_back(particle.position.y);
+            // Color
+            vertexData.push_back(0.f);
+            vertexData.push_back(0.f);
+            vertexData.push_back(0.f);
+            vertexData.push_back(1.f);
+        }
+    }
+    else
+    {
+        for (auto &&particle : particleSet.particles)
+        {
+            // Position
+            vertexData.push_back(particle.position.x);
+            vertexData.push_back(particle.position.y);
+            // Color
+            // vertexData.push_back(glm::length(particle.velocity) / 10.f);
+            vertexData.push_back(0.1f);
+            vertexData.push_back(0.1f);
+            vertexData.push_back(1.f);
+            vertexData.push_back(1.f);
+        }
     }
 }

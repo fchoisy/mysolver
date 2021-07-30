@@ -28,7 +28,7 @@ void ParticleSimulation::UpdateNeighbors(const float kernelSupport)
             for (auto &&otherParticleSet : particleSets)
             {
                 auto neighborMap = &neighbors;
-                if (particleSet->isStatic)
+                if (particleSet->isBoundary)
                 {
                     neighborMap = &staticNeighbors;
                 }
@@ -58,7 +58,7 @@ void ParticleSimulation::UpdateParticleQuantities(const glm::vec2 gravity) const
 {
     for (auto &&particleSet : particleSets)
     {
-        if (!particleSet->isStatic)
+        if (!particleSet->isBoundary)
         {
             Kernel kernel(particleSet->spacing);
             // Compute density and pressure for each particle
@@ -145,7 +145,7 @@ float ParticleSimulation::ComputeTimeStep(float CFLNumber) const
     float timeStep = 0.01f; // max time step
     for (auto &&particleSet : particleSets)
     {
-        if (!particleSet->isStatic)
+        if (!particleSet->isBoundary)
         {
             float maxVelocity = 0.f;
             for (auto &&particle : particleSet->particles)
@@ -166,7 +166,7 @@ void ParticleSimulation::UpdateParticlePositions(float timeStep) const
 {
     for (auto &&particleSet : particleSets)
     {
-        if (!particleSet->isStatic)
+        if (!particleSet->isBoundary)
         {
             // Update position based on acceleration for each particle
 

@@ -26,14 +26,14 @@ void ParticleSet::InitGrid(int xCount, int yCount, float spacing)
 ParticleSet::ParticleSet(int xCount, int yCount, float spacing)
     : particles(), spacing(spacing),
       restDensity(1.2f), stiffness(.5f), viscosity(12.f),
-      isStatic(false)
+      isBoundary(false)
 {
     InitGrid(xCount, yCount, spacing);
 }
 ParticleSet::ParticleSet(int xCount, int yCount, float spacing, float restDensity, float stiffness, float viscosity)
     : particles(), spacing(spacing),
       restDensity(restDensity), stiffness(stiffness), viscosity(viscosity),
-      isStatic(false)
+      isBoundary(false)
 {
     InitGrid(xCount, yCount, spacing);
 }
