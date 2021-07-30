@@ -63,18 +63,28 @@ private:
         particleSets.push_back(fluid);
 
         // - Boundaries
-        ParticleSet boundary = ParticleSet(7, 3, spacing, restDensity, stiffness, boundaryViscosity);
+        ParticleSet boundary = ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity);
         boundary.TranslateAll(-3.f * spacing, -3.f * spacing);
         boundary.isBoundary = true;
         particleSets.push_back(boundary);
 
-        // ParticleSet boundary2 = ParticleSet(3, 30, spacing, restDensity, stiffness, boundaryViscosity);
-        // boundary2.TranslateAll(-3.f * spacing, 0.f * spacing);
-        // boundary2.isBoundary = true;
-        // particleSets.push_back(boundary2);
+        ParticleSet boundary2 = ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity);
+        boundary2.TranslateAll(-3.f * spacing, 0.f * spacing);
+        boundary2.isBoundary = true;
+        particleSets.push_back(boundary2);
 
-        // ParticleSet boundary3 = ParticleSet(3, 30, spacing, restDensity, stiffness, boundaryViscosity);
-        // boundary3.TranslateAll(10.f * spacing, 0.f * spacing);
+        ParticleSet boundary3 = ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity);
+        boundary3.TranslateAll(5.f * spacing, 0.f * spacing);
+        boundary3.isBoundary = true;
+        particleSets.push_back(boundary3);
+
+        ParticleSet boundary4 = ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity);
+        boundary4.TranslateAll(-3.f * spacing, 5.f * spacing);
+        boundary4.isBoundary = true;
+        particleSets.push_back(boundary4);
+
+        // ParticleSet boundary3 = ParticleSet(3, 11, spacing, restDensity, stiffness, boundaryViscosity);
+        // boundary3.TranslateAll(5.f * spacing, -3.f * spacing);
         // boundary3.isBoundary = true;
         // particleSets.push_back(boundary3);
 
@@ -104,7 +114,7 @@ private:
 
 public:
     BoundaryExperiment()
-        : defaultCountX(1), defaultCountY(1),
+        : defaultCountX(5), defaultCountY(5),
           defaultSpacing(3.f),
           defaultRestDensity(3e3f),
           defaultStiffness(4e7f),
