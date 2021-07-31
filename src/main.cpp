@@ -60,21 +60,21 @@ private:
         particleSets.push_back(ParticleSet(countX, countY, spacing, restDensity, stiffness, viscosity));
 
         // - Boundaries
-        particleSets.push_back(ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.push_back(ParticleSet(26, 3, spacing, restDensity, stiffness, boundaryViscosity));
         particleSets.back().TranslateAll(-3.f * spacing, -3.f * spacing);
         particleSets.back().isBoundary = true;
 
-        particleSets.push_back(ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.push_back(ParticleSet(3, 20, spacing, restDensity, stiffness, boundaryViscosity));
         particleSets.back().TranslateAll(-3.f * spacing, 0.f * spacing);
         particleSets.back().isBoundary = true;
 
-        particleSets.push_back(ParticleSet(3, 5, spacing, restDensity, stiffness, boundaryViscosity));
-        particleSets.back().TranslateAll(5.f * spacing, 0.f * spacing);
+        particleSets.push_back(ParticleSet(3, 20, spacing, restDensity, stiffness, boundaryViscosity));
+        particleSets.back().TranslateAll(20.f * spacing, 0.f * spacing);
         particleSets.back().isBoundary = true;
 
-        particleSets.push_back(ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity));
-        particleSets.back().TranslateAll(-3.f * spacing, 5.f * spacing);
-        particleSets.back().isBoundary = true;
+        // particleSets.push_back(ParticleSet(11, 3, spacing, restDensity, stiffness, boundaryViscosity));
+        // particleSets.back().TranslateAll(-3.f * spacing, 5.f * spacing);
+        // particleSets.back().isBoundary = true;
 
         // Bind history tracker to the particle fluid
         historyTracker.SetTarget(&particleSets.front());
@@ -102,7 +102,7 @@ private:
 
 public:
     BoundaryExperiment()
-        : defaultCountX(5), defaultCountY(5),
+        : defaultCountX(10), defaultCountY(10),
           defaultSpacing(3.f),
           defaultRestDensity(3e3f),
           defaultStiffness(4e7f),
@@ -110,7 +110,7 @@ public:
           defaultBoundaryViscosity(4e-2),
           currentTime(0.f),
           timeStep(.01f),
-          simulationStepsPerRender(1),
+          simulationStepsPerRender(5),
           gravity(0.f, -9.81f),
           graphics(*this)
     {
@@ -162,8 +162,8 @@ public:
         if (ImGui::CollapsingHeader("User Guide"))
         {
             ImPlot::ShowUserGuide();
-            ImGui::BulletText("Press Space to Play/Pause the simulation.");
-            ImGui::BulletText("Press Enter to simulate 1 time step.");
+            ImGui::BulletText("Press Space to Play/Pause the simulation visualization.");
+            ImGui::BulletText("Press Enter to render 1 step.");
             ImGui::BulletText("Press Escape to quit.");
         }
         if (ImGui::CollapsingHeader("Time, size, distance", ImGuiTreeNodeFlags_DefaultOpen))
@@ -207,10 +207,10 @@ public:
         {
             ImGui::Text("Number of particles");
             static int newNoParticlesX = defaultCountX;
-            ImGui::SliderInt("x", &newNoParticlesX, 1, 10);
+            ImGui::SliderInt("x", &newNoParticlesX, 1, 20);
 
             static int newNoParticlesY = defaultCountY;
-            ImGui::SliderInt("y", &newNoParticlesY, 1, 10);
+            ImGui::SliderInt("y", &newNoParticlesY, 1, 20);
 
             static float newRestDensity = defaultRestDensity;
             ImGui::InputFloat("Rest density", &newRestDensity, 0.0F, 0.0F, "%e");
@@ -221,10 +221,13 @@ public:
             static float newViscosity = defaultViscosity;
             ImGui::InputFloat("Viscosity", &newViscosity, 0.0F, 0.0F, "%e");
 
+            static float newBoundaryViscosity = defaultBoundaryViscosity;
+            ImGui::InputFloat("Boundary viscosity", &newBoundaryViscosity, 0.0F, 0.0F, "%e");
+
             if (ImGui::Button("Reset"))
             {
                 historyTracker.Clear();
-                InitializeSimulation(newNoParticlesX, newNoParticlesY, defaultSpacing, newRestDensity, newStiffness, newViscosity, defaultBoundaryViscosity);
+                InitializeSimulation(newNoParticlesX, newNoParticlesY, defaultSpacing, newRestDensity, newStiffness, newViscosity, newBoundaryViscosity);
                 InitializeModels();
                 currentTime = 0.f;
             }
