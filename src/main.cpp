@@ -110,7 +110,7 @@ public:
           defaultBoundaryViscosity(4e-2),
           currentTime(0.f),
           timeStep(.01f),
-          simulationStepsPerRender(5),
+          simulationStepsPerRender(1),
           gravity(0.f, -9.81f),
           graphics(*this)
     {
@@ -171,22 +171,12 @@ public:
             ImGui::Text("t = %f", currentTime);
             ImGui::SameLine();
             ImGui::InputFloat("Time step", &timeStep, 0.f, 0.f, "%f");
+            ImGui::SliderInt("Simulation steps per render step", &simulationStepsPerRender, 1, 20);
             ImGui::Text("h = %f", defaultSpacing);
             // ImGui::Text("Time step = %f", timeStep);
             if (ImPlot::BeginPlot("Maximum distance traveled by a particle", "time", "magnitude", ImVec2(-1, 0), 0, 0, ImPlotAxisFlags_AutoFit))
             {
-
-                std::vector<float> maxDistanceHistory;
-                for (auto &&ps : historyTracker.GetTargetHistory())
-                {
-                    float maxDistance = 0.f;
-                    for (auto &&p : ps)
-                    {
-                        maxDistance = glm::max(maxDistance, timeStep * glm::length(p.velocity));
-                    }
-                    maxDistanceHistory.push_back(maxDistance);
-                }
-                ImPlot::PlotLine("Maximum distance", historyTracker.GetTimeHistory().data(), maxDistanceHistory.data(), maxDistanceHistory.size());
+                ImPlot::PlotLine("Maximum distance", historyTracker.GetTimeHistory().data(), historyTracker.maxDistance.data(), historyTracker.maxDistance.size());
                 float particleSize[2] = {defaultSpacing, defaultSpacing};
                 float time[2] = {0.f, 0.f};
                 if (historyTracker.GetTimeHistory().size() >= 1)
@@ -199,34 +189,17 @@ public:
                 ImPlot::EndPlot();
             }
         }
-        static std::vector<float> densityHistory;
-        static std::vector<float> pressureHistory;
-        static std::vector<float> pressureAccelerationHistory;
-        static std::vector<float> viscosityAccelerationHistory;
-        static std::vector<float> otherAccelerationsHistory;
-        static std::vector<float> velocityHistory;
         if (ImGui::CollapsingHeader("Particle Quantities", ImGuiTreeNodeFlags_DefaultOpen))
         {
             if (ImPlot::BeginPlot("Properties of the particle of index 0", "time", "magnitude", ImVec2(-1, 0), 0, 0, ImPlotAxisFlags_AutoFit))
             {
                 ImPlot::SetLegendLocation(ImPlotLocation_South, ImPlotOrientation_Vertical, true);
-
-                while (historyTracker.GetTargetHistory().size() > densityHistory.size())
-                {
-                    auto ps = historyTracker.GetTargetHistory().back();
-                    densityHistory.push_back(ps.at(0).density / 1000.f);
-                    pressureHistory.push_back(ps.at(0).pressure / 10000.f);
-                    pressureAccelerationHistory.push_back(glm::length(ps.at(0).pressureAcceleration) / 10.f);
-                    viscosityAccelerationHistory.push_back(glm::length(ps.at(0).viscosityAcceleration) / 10.f);
-                    otherAccelerationsHistory.push_back(glm::length(ps.at(0).otherAccelerations) / 10.f);
-                    velocityHistory.push_back(glm::length(ps.at(0).velocity));
-                }
-                ImPlot::PlotLine("Density", historyTracker.GetTimeHistory().data(), densityHistory.data(), densityHistory.size());
-                ImPlot::PlotLine("Pressure", historyTracker.GetTimeHistory().data(), pressureHistory.data(), pressureHistory.size());
-                ImPlot::PlotLine("Pressure acceleration", historyTracker.GetTimeHistory().data(), pressureAccelerationHistory.data(), pressureAccelerationHistory.size());
-                ImPlot::PlotLine("Viscosity acceleration", historyTracker.GetTimeHistory().data(), viscosityAccelerationHistory.data(), viscosityAccelerationHistory.size());
-                ImPlot::PlotLine("Other accelerations", historyTracker.GetTimeHistory().data(), otherAccelerationsHistory.data(), otherAccelerationsHistory.size());
-                ImPlot::PlotLine("Velocity", historyTracker.GetTimeHistory().data(), velocityHistory.data(), velocityHistory.size());
+                ImPlot::PlotLine("Density", historyTracker.GetTimeHistory().data(), historyTracker.density[0].data(), historyTracker.density[0].size());
+                ImPlot::PlotLine("Pressure", historyTracker.GetTimeHistory().data(), historyTracker.pressure[0].data(), historyTracker.pressure[0].size());
+                ImPlot::PlotLine("Pressure acceleration", historyTracker.GetTimeHistory().data(), historyTracker.pressureAcceleration[0].data(), historyTracker.pressureAcceleration[0].size());
+                ImPlot::PlotLine("Viscosity acceleration", historyTracker.GetTimeHistory().data(), historyTracker.viscosityAcceleration[0].data(), historyTracker.viscosityAcceleration[0].size());
+                ImPlot::PlotLine("Other accelerations", historyTracker.GetTimeHistory().data(), historyTracker.otherAccelerations[0].data(), historyTracker.otherAccelerations[0].size());
+                ImPlot::PlotLine("Velocity", historyTracker.GetTimeHistory().data(), historyTracker.velocity[0].data(), historyTracker.velocity[0].size());
                 ImPlot::EndPlot();
             }
         }
@@ -251,12 +224,6 @@ public:
             if (ImGui::Button("Reset"))
             {
                 historyTracker.Clear();
-                densityHistory.clear();
-                pressureHistory.clear();
-                pressureAccelerationHistory.clear();
-                viscosityAccelerationHistory.clear();
-                otherAccelerationsHistory.clear();
-                velocityHistory.clear();
                 InitializeSimulation(newNoParticlesX, newNoParticlesY, defaultSpacing, newRestDensity, newStiffness, newViscosity, defaultBoundaryViscosity);
                 InitializeModels();
                 currentTime = 0.f;
