@@ -1,5 +1,7 @@
 # Simple Fluid Solver
 
+<img src="https://github.com/fchoisy/mysolver/blob/master/resources/gui.png?raw=true" alt="Screenshot of the fluid solver" width="700">
+
 This project aims at implementing a fluid solver based on the SPH (Smoothed Particle Hydrodynamics) method.
 The goal of the project is to better understand how the the speed and accuracy of such a fluid simulation are influenced by the different parameters of the simulation, and in particular by the time step, the viscosity and the stiffness.
 
