@@ -6,7 +6,7 @@ include_directories(../thirdparty/include)
 # add_subdirectory(lib/Catch2)
 add_executable(testmain test-main.cpp
 TestKernel.cpp ../src/Kernel.cpp ../src/ParticleSet.cpp ../src/ParticleSimulation.cpp
-TestParticleSet.cpp ../src/Particle.cpp ../src/ParticleSet.cpp ../src/ParticleSimulation.cpp
+TestParticleSimulation.cpp ../src/Particle.cpp ../src/ParticleSet.cpp ../src/ParticleSimulation.cpp
 ${HEADER_FILES} catch_amalgamated.cpp)
 
 

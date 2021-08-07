@@ -1,20 +1,20 @@
-#include "catch_amalgamated.hpp"
+#include "catch_amalgamated.hpp" // Test framework
 
-#include "TestParticleSet.hpp"
-
-#include <iostream>
+#include "TestParticleSimulation.hpp"
+// Tested files
+#include <ParticleSet.hpp>
+#include <ParticleSimulation.hpp>
+// Libraries
+#include <glm/geometric.hpp>       // Vector maths
+#include <glm/gtx/string_cast.hpp> // For debugging
+#include <iomanip>                 // std::setw()
+#include <iostream>                // std::cout
 #include <limits>                  // std::numeric_limits
 #include <cstdlib>                 // Random
 #include <ctime>                   // To fix seed
 #include <cmath>                   // For cos and sin
-#include <glm/geometric.hpp>       // Vector maths
-#include <glm/gtx/string_cast.hpp> // For debugging
-#include <iomanip>                 // std::setw()
-// Tested files
-#include <ParticleSet.hpp>
-#include <ParticleSimulation.hpp>
 
-using namespace Catch;
+using namespace Catch; // Test framework
 
 static const float epsilon = std::numeric_limits<float>::epsilon() * 100;
 
