@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Model.hpp"
 #include "Experiment.hpp"
 #include <vector>
 #include <GLFW/glfw3.h>
