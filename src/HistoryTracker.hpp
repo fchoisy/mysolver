@@ -1,3 +1,5 @@
+// Keeps track of the evolution of a patricle set over time.
+
 #pragma once
 
 #include "ParticleSet.hpp"
@@ -6,11 +8,6 @@
 
 class HistoryTracker
 {
-private:
-    std::vector<float> timeHistory;
-    // std::vector<std::vector<Particle>> targetHistory;
-    const ParticleSet *target;
-
 public:
     // Properties of particle at index 0 over time
     std::vector<std::vector<float>> density;
@@ -110,4 +107,9 @@ public:
         }
         maxDistance.clear();
     }
+
+private:
+    std::vector<float> timeHistory;
+    // std::vector<std::vector<Particle>> targetHistory;
+    const ParticleSet *target;
 };

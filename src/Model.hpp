@@ -1,3 +1,5 @@
+// Represents a graphical entity to be rendered.
+
 #pragma once
 
 #include <vector>
@@ -6,17 +8,10 @@
 
 class Model
 {
-private:
-    void LoadShaders(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName);
-    std::vector<GLfloat> vertexData;
-    // Copying disabled because disabled in tdogl::Program
-    Model(const Model &);
-    const Model &operator=(const Model &);
 
 public:
     static Model *Axes();
     static Model *Graph(const std::vector<GLfloat> &vertexData);
-    static Model *ParticleVisualization(const std::vector<GLfloat> &vertexData);
     Model(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode);
     ~Model();
     virtual void Update(){};
@@ -26,4 +21,11 @@ public:
     GLuint vbo;
     GLint drawCount;
     GLenum drawMode;
+
+private:
+    // Copying disabled because disabled in tdogl::Program
+    Model(const Model &);
+    const Model &operator=(const Model &);
+    void LoadShaders(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName);
+    std::vector<GLfloat> vertexData;
 };

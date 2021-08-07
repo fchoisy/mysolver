@@ -1,3 +1,5 @@
+// Graphical representation of a set of particles.
+
 #pragma once
 
 #include "Model.hpp"
@@ -6,12 +8,14 @@
 
 class ParticleSetModel : public Model
 {
-private:
-    const ParticleSet &particleSet;
-    std::vector<GLfloat> vertexData;
-    void UpdateVertexData();
 
 public:
     ParticleSetModel(const ParticleSet &particleSet);
+    // Converts the data of the particle set to vertex data for rendering
     void Update();
+
+private:
+    void UpdateVertexData();
+    const ParticleSet &particleSet;
+    std::vector<GLfloat> vertexData;
 };

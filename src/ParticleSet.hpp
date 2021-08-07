@@ -1,3 +1,6 @@
+// Represents a set of particles.
+// For example, a fluid body or a boundary.
+
 #pragma once
 
 #include <vector>       // std::vector
@@ -5,9 +8,6 @@
 
 class ParticleSet
 {
-private:
-    void InitGrid(int xCount, int yCount, float spacing);
-
 public:
     // Constructors and destructor
     ParticleSet(int xCount, int yCount, float spacing);
@@ -20,4 +20,7 @@ public:
     std::vector<Particle> particles;
     float spacing, restDensity, stiffness, viscosity;
     bool isBoundary;
+
+private:
+    void InitGrid(int xCount, int yCount, float spacing);
 };

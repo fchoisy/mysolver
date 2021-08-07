@@ -49,15 +49,6 @@ Model *Model::Graph(const std::vector<GLfloat> &vertexData)
     return newModel;
 }
 
-// Model *Model::ParticleVisualization(const std::vector<GLfloat> &vertexData)
-// {
-//     return new Model(vertexData,
-//  ROOT_DIR "resources/particle-shaders/vertex-shader.glsl",
-//  ROOT_DIR "resources/particle-shaders/geometry-shader.glsl",
-//  ROOT_DIR "resources/particle-shaders/fragment-shader.glsl",
-//  GL_POINTS);
-// }
-
 Model::Model(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode)
     : drawMode(drawMode), drawCount(0)
 {
