@@ -18,7 +18,7 @@ static const float epsilon = std::numeric_limits<float>::epsilon() * 100;
 
 TEST_CASE("Kernel function", "[kernel]")
 {
-    const float h = .1f;
+    const float h = .6f;
     const float frac = 1.f / (14.f * glm::pi<float>() * h * h);
     const float t = glm::pow((2.f - glm::sqrt(2.f)), 3.f);
 
@@ -43,7 +43,7 @@ TEST_CASE("Kernel function", "[kernel]")
         const float expected_sum_when_surrounded = (40.f + 20.f * t) * frac;
 
         // Generate particle set
-        ParticleSet particleSet(5, 5, h);
+        ParticleSet particleSet(5, 5, h, 0.f, 0.f, 0.f);
         // Find neighbors
         ParticleSimulation particleSimulation;
         particleSimulation.AddParticleSet(particleSet);
@@ -122,7 +122,7 @@ TEST_CASE("Kernel derivative", "[kernel]")
         // const glm::vec2 expected_sum_when_surrounded = glm::vec2(0.f, 0.f);
 
         // Generate particle set
-        ParticleSet particleSet(5, 5, .1f);
+        ParticleSet particleSet(5, 5, 3.f, 0.f, 0.f, 0.f);
         // Find neighbors
         ParticleSimulation particleSimulation;
         particleSimulation.AddParticleSet(particleSet);

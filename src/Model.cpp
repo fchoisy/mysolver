@@ -4,51 +4,6 @@
 #include "Model.hpp"
 #include "helpers/RootDir.h"
 
-Model *Model::Axes()
-{
-    Model *newModel = new Model(ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
-                                "",
-                                ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
-                                GL_LINES);
-    newModel->SetVertexData({
-        -10.f,
-        0.f,
-        1,
-        0,
-        0,
-        1,
-        10.f,
-        0.f,
-        1,
-        0,
-        0,
-        1,
-        0.f,
-        -10.f,
-        0,
-        1,
-        0,
-        1,
-        0.f,
-        10.f,
-        0,
-        1,
-        0,
-        1,
-    });
-    return newModel;
-}
-
-Model *Model::Graph(const std::vector<GLfloat> &vertexData)
-{
-    Model *newModel = new Model(ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
-                                "",
-                                ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
-                                GL_LINE_STRIP);
-    newModel->SetVertexData(vertexData);
-    return newModel;
-}
-
 Model::Model(std::string vertexShaderFileName, std::string geometryShaderFileName, std::string fragmentShaderFileName, GLenum drawMode)
     : drawMode(drawMode), drawCount(0)
 {
@@ -96,16 +51,49 @@ void Model::LoadShaders(std::string vertexShaderFileName, std::string geometrySh
         shaders.push_back(tdogl::Shader::shaderFromFile(geometryShaderFileName, GL_GEOMETRY_SHADER));
     shaders.push_back(tdogl::Shader::shaderFromFile(fragmentShaderFileName, GL_FRAGMENT_SHADER));
     this->program = new tdogl::Program(shaders);
-    // this->program->use();
-    // // glm::mat4 projection = glm::perspective(glm::radians(50.0f), SCREEN_SIZE.x/SCREEN_SIZE.y, 0.1f, 10.0f);
-    // // GLfloat aspect = SCREEN_SIZE.x / SCREEN_SIZE.y;
-    // GLfloat aspect = 800.f / 600.f;
-    // glm::mat4 projection = glm::ortho(-aspect, aspect, -1.f, 1.0f);
-    // this->program->setUniform("projection", projection);
+}
 
-    // glm::mat4 camera = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(-.5f, -.5f, 0.f)), glm::vec3(.5f, .5f, .5f));
-    // // glm::mat4 camera = glm::mat4(1.0f);
-    // this->program->setUniform("camera", camera);
+Model *Model::Graph(const std::vector<GLfloat> &vertexData)
+{
+    Model *newModel = new Model(ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                "",
+                                ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                GL_LINE_STRIP);
+    newModel->SetVertexData(vertexData);
+    return newModel;
+}
 
-    // this->program->stopUsing();
+Model *Model::Axes()
+{
+    Model *newModel = new Model(ROOT_DIR "resources/graph-shaders/vertex-shader.glsl",
+                                "",
+                                ROOT_DIR "resources/graph-shaders/fragment-shader.glsl",
+                                GL_LINES);
+    newModel->SetVertexData({
+        -10.f,
+        0.f,
+        1,
+        0,
+        0,
+        1,
+        10.f,
+        0.f,
+        1,
+        0,
+        0,
+        1,
+        0.f,
+        -10.f,
+        0,
+        1,
+        0,
+        1,
+        0.f,
+        10.f,
+        0,
+        1,
+        0,
+        1,
+    });
+    return newModel;
 }

@@ -1,17 +1,16 @@
-// Graphical representation of a set of particles.
 
 #pragma once
 
 #include "Model.hpp"
 #include "ParticleSet.hpp"
-// #include <glm/geometric.hpp>  // glm::length
 
+// Graphical representation of a set of particles.
 class ParticleSetModel : public Model
 {
 
 public:
     ParticleSetModel(const ParticleSet &particleSet);
-    // Converts the data of the particle set to vertex data for rendering
+    // Converts the data of the particle set to vertex data for rendering.
     void Update();
 
 private:

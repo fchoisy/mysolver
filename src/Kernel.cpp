@@ -1,26 +1,25 @@
 #include "Kernel.hpp"
 
-#include <glm/vec2.hpp>
-#include <glm/common.hpp>
-#include <glm/geometric.hpp>
-#include <glm/gtc/constants.hpp>
-#include <limits>
+#include <glm/common.hpp>        // glm::max
+#include <glm/vec2.hpp>          // glm::vec2
+#include <glm/geometric.hpp>     // glm::length
+#include <glm/gtc/constants.hpp> // glm::pi
 #include <exception>
 
 Kernel::Kernel(const float h)
-    : h(h)
+    : h(h), alpha(0.f)
 {
     if (h < 0)
         throw std::invalid_argument("h must be >= 0");
+    // alpha = 1.f / (6.f * h);  // 1D
+    alpha = 5.f / (14.f * glm::pi<float>() * h * h); // 2D
+    // alpha = 1.f / (4.f * glm::pi<float>() * h * h * h);  // 3D
 }
 
 float Kernel::Function(const glm::vec2 &position_i, const glm::vec2 &position_j)
 {
     if (h < 0)
         throw std::invalid_argument("h must be >= 0");
-    // float alpha = 1.f / (6.f * h);  // 1D
-    float alpha = 5.f / (14.f * glm::pi<float>() * h * h); // 2D
-    // float alpha = 1.f / (4.f * glm::pi<float>() * h * h * h);  // 3D
     float q = glm::distance(position_i, position_j) / h;
     float t1 = glm::max(1.f - q, 0.f);
     float t2 = glm::max(2.f - q, 0.f);
@@ -31,9 +30,7 @@ glm::vec2 Kernel::Derivative(const glm::vec2 &position_i, const glm::vec2 &posit
 {
     if (h < 0)
         throw std::invalid_argument("h must be >= 0");
-    // float alpha = 1.f / (6.f * h);  // 1D
-    float alpha = 5.f / (14.f * glm::pi<float>() * h * h); // 2D
-    // float alpha = 1.f / (4.f * glm::pi<float>() * h * h * h);  // 3D
+
     float d = glm::distance(position_i, position_j) / h;
     if (d == 0)
     {
@@ -56,7 +53,6 @@ const std::vector<float> &Kernel::FunctionVertexData()
     {
         float x = rangeStart + stepSize * i;
         float y = Function(origin, glm::vec2(x, 0.f)) * 10.f;
-        // std::cout << y << std::endl;
         functionVertexData.push_back(x);
         functionVertexData.push_back(y);
         functionVertexData.push_back(1);

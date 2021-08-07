@@ -14,7 +14,7 @@ void ParticleSimulation::Clear()
 {
     particleSets.clear();
     neighbors.clear();
-    staticNeighbors.clear();
+    boundaryNeighbors.clear();
 }
 
 void ParticleSimulation::UpdateNeighbors(const float kernelSupport)
@@ -24,13 +24,13 @@ void ParticleSimulation::UpdateNeighbors(const float kernelSupport)
         for (auto &&particle : particleSet->particles)
         {
             neighbors[&particle] = std::vector<const Particle *>();
-            staticNeighbors[&particle] = std::vector<const Particle *>();
+            boundaryNeighbors[&particle] = std::vector<const Particle *>();
             for (auto &&otherParticleSet : particleSets)
             {
                 auto neighborMap = &neighbors;
                 if (particleSet->isBoundary)
                 {
-                    neighborMap = &staticNeighbors;
+                    neighborMap = &boundaryNeighbors;
                 }
                 for (auto &&otherParticle : otherParticleSet->particles)
                 {
@@ -49,9 +49,9 @@ const std::vector<const Particle *> &ParticleSimulation::GetNeighbors(const Part
     return neighbors.at(&particle);
 }
 
-const std::vector<const Particle *> &ParticleSimulation::GetStaticNeighbors(const Particle &particle) const
+const std::vector<const Particle *> &ParticleSimulation::GetBoundaryNeighbors(const Particle &particle) const
 {
-    return staticNeighbors.at(&particle);
+    return boundaryNeighbors.at(&particle);
 }
 
 void ParticleSimulation::UpdateParticleQuantities(const glm::vec2 gravity) const
@@ -69,7 +69,7 @@ void ParticleSimulation::UpdateParticleQuantities(const glm::vec2 gravity) const
                 {
                     particle.density += kernel.Function(particle.position, neighbor->position);
                 }
-                for (auto &&neighbor : GetStaticNeighbors(particle))
+                for (auto &&neighbor : GetBoundaryNeighbors(particle))
                 {
                     particle.density += kernel.Function(particle.position, neighbor->position);
                 }
@@ -96,7 +96,7 @@ void ParticleSimulation::UpdateParticleQuantities(const glm::vec2 gravity) const
                 fluidViscosityAcceleration *= 2.f;
                 fluidViscosityAcceleration *= particleSet->viscosity;
                 glm::vec2 staticViscosityAcceleration(0.f, 0.f);
-                for (auto &&neighbor : GetStaticNeighbors(particle))
+                for (auto &&neighbor : GetBoundaryNeighbors(particle))
                 {
                     glm::vec2 positionDiff = particle.position - neighbor->position;
                     glm::vec2 velocityDiff = particle.velocity - neighbor->velocity;
@@ -119,9 +119,9 @@ void ParticleSimulation::UpdateParticleQuantities(const glm::vec2 gravity) const
                 // fluidPressureAcceleration *= -particle.mass;
                 // Pressure acceleration from (static) boundary particles
                 glm::vec2 boundaryPressureAcceleration(0.f, 0.f);
-                for (auto &&staticNeighbor : GetStaticNeighbors(particle))
+                for (auto &&boundaryNeighbor : GetBoundaryNeighbors(particle))
                 {
-                    boundaryPressureAcceleration += kernel.Derivative(particle.position, staticNeighbor->position);
+                    boundaryPressureAcceleration += kernel.Derivative(particle.position, boundaryNeighbor->position);
                 }
                 boundaryPressureAcceleration *= particle.pressure *
                                                 (1.f / (particle.density * particle.density) +

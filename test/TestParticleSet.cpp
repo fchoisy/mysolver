@@ -66,7 +66,7 @@ void ApplyRandomRotation(ParticleSet &particleSet)
 TEST_CASE("Number of neighbors is correct", "[neighbors]")
 {
     // Generate particle set
-    ParticleSet particleSet(10, 10, .1f);
+    ParticleSet particleSet(10, 10, .2f, 0.f, 0.f, 0.f);
 
     SECTION("before any transformation")
     {
@@ -89,4 +89,3 @@ TEST_CASE("Number of neighbors is correct", "[neighbors]")
         RequireNeighborCountIsCorrect(particleSet);
     }
 }
-

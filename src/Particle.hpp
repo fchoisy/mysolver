@@ -1,4 +1,3 @@
-// Represents one single particle.
 
 #pragma once
 
@@ -6,6 +5,7 @@
 
 class ParticleSet; // Forward declaration for mutual dependency
 
+// Represents one single particle and its physical properties.
 class Particle
 {
 public:
