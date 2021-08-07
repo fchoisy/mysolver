@@ -1,17 +1,15 @@
-#include <iostream>
-
-#include <GL/glew.h>                    // Runtime loading of OpenGL API functions
-#include <GLFW/glfw3.h>                 // Windowing
-#include <glm/common.hpp>               // Vector maths
-#include <glm/gtc/matrix_transform.hpp> // Vector maths
-// #include <glm/gtx/string_cast.hpp>      // For debugging
-
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include "imgui/implot.h"
-
 #include "Graphics.hpp"
+
+#include "imgui/imgui.h"                // ImGui::, initialization of immediate-mode GUI
+#include "imgui/imgui_impl_glfw.h"      // ...
+#include "imgui/imgui_impl_opengl3.h"   // ...
+#include "imgui/implot.h"               // ImPlot::, initialization of plots for ImGui
+#include <GL/glew.h>                    // Runtime loading of OpenGL API functions
+#include <GLFW/glfw3.h>                 // Windowing and events
+#include <glm/common.hpp>               // glm::, vector maths
+#include <glm/gtc/matrix_transform.hpp> // glm::scale, glm::transform, glm::ortho, matrix transformations
+// #include <glm/gtx/string_cast.hpp>   // debugging
+#include <iostream>
 
 const float Graphics::ZOOM_SPEED(.5f);
 const float Graphics::ZOOM_MIN(.001f);
